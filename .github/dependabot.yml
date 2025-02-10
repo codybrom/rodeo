@@ -12,3 +12,15 @@ updates:
     reviewers:
       - "codybrom"
     open-pull-requests-limit: 10
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      major-updates:
+        patterns:
+          - "*"
+        update-types:
+          - major
