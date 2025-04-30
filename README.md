@@ -1,10 +1,10 @@
-# LLM Context Generator
+# Rodeo – LLM Context Generator
 
 [![VS Marketplace Version](https://badgen.net/vs-marketplace/v/codybrom.gpt-context-generator)](https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator)
 [![VS Marketplace Installs](https://badgen.net/vs-marketplace/i/codybrom.gpt-context-generator)](https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator)
 [![VS Marketplace Rating](https://badgen.net/vs-marketplace/d/codybrom.gpt-context-generator)](https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator)
 
-This Visual Studio Code extension helps you generate LLM-ready context from your workspace files, making it easier to collaborate with AI models. The extension can automatically reference local code dependencies and respects your `.gitignore` rules to avoid including unnecessary files.
+Rodeo is a Visual Studio Code extension helps you generate LLM-ready context from your workspace files, making it easier to collaborate with AI models. The extension can automatically reference local code dependencies and respects your `.gitignore` rules to avoid including unnecessary files.
 
 ## Features
 
@@ -105,4 +105,9 @@ Configure the extension in VS Code settings:
 
 ## License
 
-Released under the MIT License.
+© Cody Bromley and contributors. All rights reserved. Rodeo, "LLM Rodeo" and all trademark rights are reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
