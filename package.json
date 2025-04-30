@@ -1,8 +1,8 @@
 {
-	"displayName": "LLM Context Generator",
+	"displayName": "Rodeo – LLM Context Generator",
 	"publisher": "codybrom",
 	"name": "gpt-context-generator",
-	"description": "Generate LLM-ready context for files or workspaces",
+	"description": "Generate LLM-ready Markdown code context from files and workspaces",
 	"version": "1.5.0",
 	"engines": {
 		"vscode": "^1.96.0"
@@ -28,19 +28,19 @@
 		"commands": [
 			{
 				"command": "gpt-context-generator.createGPTFriendlyContextForOpenFile",
-				"title": "Generate LLM Context (Current File + Imports)"
+				"title": "Rodeo: Generate LLM Context (Current File + Imports)"
 			},
 			{
 				"command": "gpt-context-generator.createGPTFriendlyContext",
-				"title": "Generate LLM Context (Workspace)"
+				"title": "Rodeo: Generate LLM Context (Workspace)"
 			},
 			{
 				"command": "gpt-context-generator.markFileForInclusion",
-				"title": "Mark/Unmark File for LLM Context"
+				"title": "Rodeo: Mark/Unmark File for LLM Context"
 			},
 			{
 				"command": "gpt-context-generator.createGPTFriendlyContextForMarkedFiles",
-				"title": "Generate LLM Context (Marked Files)",
+				"title": "Rodeo: Generate LLM Context (Marked Files)",
 				"icon": {
 					"light": "images/generate-light.svg",
 					"dark": "images/generate-dark.svg"
@@ -48,7 +48,7 @@
 			},
 			{
 				"command": "gpt-context-generator.clearMarkedFiles",
-				"title": "Clear Marked Files",
+				"title": "Rodeo: Clear Marked Files",
 				"icon": {
 					"light": "images/clear-light.svg",
 					"dark": "images/clear-dark.svg"
@@ -56,7 +56,7 @@
 			},
 			{
 				"command": "gpt-context-generator.unmarkFileFromTreeView",
-				"title": "Clear Marked File",
+				"title": "Rodeo: Clear Marked File",
 				"icon": {
 					"light": "images/clear-light.svg",
 					"dark": "images/clear-dark.svg"
@@ -64,11 +64,11 @@
 			},
 			{
 				"command": "gpt-context-generator.markFilesFromExplorer",
-				"title": "Mark for LLM Context"
+				"title": "Rodeo: Mark for LLM Context"
 			}
 		],
 		"configuration": {
-			"title": "LLM Context Generator",
+			"title": "Rodeo — LLM Context Generator",
 			"properties": {
 				"gpt-context-generator.enforceFileTypes": {
 					"type": "boolean",
@@ -175,12 +175,12 @@
 					"default": [
 						".gitignore",
 						".dockerignore",
-						".llmcontextignore",
+						".rodeoignore",
 						".ignore",
 						"*.ignore"
 					],
 					"description": "Files that contain ignore patterns. Each file's patterns will be used to exclude matching files from the generated context. Supports glob patterns like '*.ignore'.",
-					"markdownDescription": "Specify files that contain ignore patterns. Each file's patterns will be used to exclude matching files from the generated context.\n\n**Examples:**\n- `.gitignore`\n- `.dockerignore`\n- `.llmcontextignore`\n- `*.ignore`\n\nFiles are processed in order, and it's okay if some files don't exist.",
+					"markdownDescription": "Specify files that contain ignore patterns. Each file's patterns will be used to exclude matching files from the generated context.\n\n**Examples:**\n- `.gitignore`\n- `.dockerignore`\n- `.rodeoignore`\n- `*.ignore`\n\nFiles are processed in order, and it's okay if some files don't exist.",
 					"order": 3
 				},
 				"gpt-context-generator.tokenWarningThreshold": {
@@ -224,7 +224,7 @@
 					"id": "markedFilesView",
 					"name": "Marked for LLM Context",
 					"icon": "images/list.svg",
-					"contextualTitle": "Marked Files for LLM Context",
+					"contextualTitle": "Rodeo",
 					"type": "tree"
 				}
 			]
@@ -264,7 +264,7 @@
 		"lint": "eslint src",
 		"pretest": "yarn run build && yarn run lint",
 		"test": "node ./out/test/runTest.js",
-		"vscode:package": "yarn run build && vsce package -o builds/llm-context-generator-$npm_package_version.zip",
+		"vscode:package": "yarn run build && vsce package -o builds/rodeo-$npm_package_version.zip",
 		"vscode:publish": "yarn run build && vsce publish"
 	},
 	"dependencies": {
@@ -298,11 +298,11 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/codybrom/llm-context-generator.git"
+		"url": "https://github.com/codybrom/rodeo.git"
 	},
-	"homepage": "https://github.com/codybrom/llm-context-generator",
+	"homepage": "https://github.com/codybrom/rodeo",
 	"bugs": {
-		"url": "https://github.com/codybrom/llm-context-generator/issues"
+		"url": "https://github.com/codybrom/rodeo/issues"
 	},
 	"license": "MIT"
 }

@@ -6,10 +6,23 @@
 		"out": true
 	},
 	"typescript.tsdk": "node_modules/typescript/lib",
-	"cSpell.words": ["codybrom", "dqbd", "tiktoken", "unmark", "yarnrc"],
+	"cSpell.words": [
+		"codybrom",
+		"dqbd",
+		"esbuild",
+		"haml",
+		"ipynb",
+		"podspec",
+		"rodeoignore",
+		"tiktoken",
+		"unmark",
+		"xcconfig",
+		"yarnrc"
+	],
 	"gpt-context-generator.ignoreFiles": [
 		".gitignore",
 		".dockerignore",
-		".llmcontextignore"
-	]
+		".rodeoignore"
+	],
+	"cSpell.enabled": true
 }

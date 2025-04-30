@@ -1,4 +1,7 @@
-require('esbuild')
+import * as esbuild from 'esbuild';
+import process from 'node:process';
+
+await esbuild
 	.build({
 		entryPoints: ['src/extension.ts'],
 		bundle: true,

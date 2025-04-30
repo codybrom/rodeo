@@ -12,7 +12,7 @@ src/**
 **/tsconfig.json
 eslint*
 esbuild*
-.llmcontextignore
+.rodeoignore
 .github
 
 # Ignore source map files

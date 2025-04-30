@@ -83,7 +83,7 @@ export const markFile = {
 
 		if (!this.isFileTypeSupported(filePath)) {
 			showMessage.warning(
-				`Cannot mark "${getBasename(filePath)}": Unsupported file type (.${getExtension(filePath)})\nSupported types: ${getConfig().detectedFileExtensions.join(', ')}\nYou can add more file types in Settings > LLM Context Generator > Detected File Extensions`,
+				`Cannot mark "${getBasename(filePath)}": Unsupported file type (.${getExtension(filePath)})\nSupported types: ${getConfig().detectedFileExtensions.join(', ')}\nYou can add more file types in Settings > Rodeo – LLM Context Generator > Detected File Extensions`,
 			);
 			return false;
 		}
@@ -205,7 +205,7 @@ export const markFile = {
 					.map((file) => `• ${getBasename(file)} (.${getExtension(file)})`)
 					.join(
 						'\n',
-					)}\nYou can add file types in Settings > LLM Context Generator > Detected File Extensions`,
+					)}\nYou can add file types in Settings > Rodeo – LLM Context Generator > Detected File Extensions`,
 			);
 		}
 
