@@ -144,11 +144,15 @@ export class MarkedFilesProvider
 
 	getTokenCountDisplay(): string {
 		return `${this._tokenCount} tokens${
-			this._tokenCount > getConfig().tokenWarningThreshold ? ' ⚠️' : ''
+			this._tokenCount > getConfig().tokenWarningThreshold ? '⚠' : ''
 		}`;
 	}
 
 	private async updateTokenCount(): Promise<void> {
+		if (markedFiles.size === 0) {
+			this._tokenCount = 0;
+			return;
+		}
 		const workspacePath = validateWorkspace();
 		if (!workspacePath) {
 			return;

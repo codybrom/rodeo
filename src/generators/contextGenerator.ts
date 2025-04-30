@@ -76,7 +76,7 @@ export class ContextGenerator {
 				await window.showTextDocument(document, ViewColumn.One);
 			} else if (outputMethod === 'clipboard') {
 				await env.clipboard.writeText(content);
-				window.showInformationMessage('LLM-ready context copied to clipboard.');
+				showMessage.copySuccess();
 			}
 		} catch (error) {
 			console.error('Error in handleOutput:', error);

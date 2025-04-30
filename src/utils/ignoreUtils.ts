@@ -1,4 +1,4 @@
-import ignore, { Ignore } from 'ignore';
+import ignore from 'ignore';
 import {
 	fileExists,
 	readFileContent,
@@ -15,7 +15,7 @@ import {
 } from 'vscode';
 
 class IgnoreManager {
-	private filters = new Map<string, Ignore>();
+	private filters = new Map<string, ignore.Ignore>();
 	private loadedPatterns = new Map<string, string[]>();
 	private initializedWorkspace: string | null = null;
 	private fileWatchers: FileSystemWatcher[] = [];
@@ -49,7 +49,7 @@ class IgnoreManager {
 		const rootFilter = ignore();
 
 		// Add patterns for the ignore files themselves - these are from the extension's config
-		// [".gitignore", ".dockerignore", ".llmcontextignore", ".ignore", "*.ignore"]
+		// [".gitignore", ".dockerignore", ".rodeoignore", ".ignore", "*.ignore"]
 		ignoreFiles.forEach((pattern) => {
 			rootFilter.add(`**/${pattern}`);
 		});

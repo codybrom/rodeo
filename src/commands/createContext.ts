@@ -68,10 +68,17 @@ export const createContext = {
 
 	async forMarkedFiles() {
 		const workspacePath = validateWorkspace();
-		if (workspacePath) {
-			await this.generateContext(workspacePath, {
-				markedFiles: Array.from(markedFiles),
-			});
+		if (!workspacePath) {
+			return;
 		}
+		if (markedFiles.size === 0) {
+			showMessage.warning(
+				'No marked files. Please mark files before generating context.',
+			);
+			return;
+		}
+		await this.generateContext(workspacePath, {
+			markedFiles: Array.from(markedFiles),
+		});
 	},
 };

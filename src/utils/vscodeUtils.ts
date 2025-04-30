@@ -23,11 +23,11 @@ export const getConfig = () => {
 
 export const showMessage = {
 	info: (message: string) =>
-		window.showInformationMessage(message, { title: 'Rodeo' }),
+		window.showInformationMessage(message, { title: '🤠 YEE HAW!' }),
 	error: (message: string) =>
-		window.showErrorMessage(message, { title: 'Rodeo' }),
+		window.showErrorMessage(message, { title: 'yee haw.' }),
 	warning: (message: string) =>
-		window.showWarningMessage(message, { title: 'Rodeo' }),
+		window.showWarningMessage(message, { title: 'Yee...haw? ' }),
 	copySuccess: () => showMessage.info('LLM-ready context copied to clipboard.'),
 	tokenCount: (count: number) => {
 		const threshold = getConfig().tokenWarningThreshold;
