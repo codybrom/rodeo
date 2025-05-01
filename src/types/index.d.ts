@@ -10,6 +10,7 @@ interface ContextOptions {
 	includePackageJson?: boolean;
 	outputMethod?: string;
 	outputLanguage?: string;
+	bypassFileTypeEnforcement?: boolean;
 }
 
 interface IgnoreConfig {

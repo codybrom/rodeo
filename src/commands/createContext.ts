@@ -1,5 +1,5 @@
 import { createContextGenerator } from '../generators/contextGenerator';
-import { markedFiles } from '../providers/markedFilesProvider';
+import { markedFiles, forceIncludedFiles } from '../providers/markedFilesProvider';
 import {
 	getActiveFilePath,
 	getConfig,
@@ -17,15 +17,28 @@ export const createContext = {
 		},
 	) {
 		try {
-			const contextGenerator = createContextGenerator(workspacePath);
+			const contextGenerator = createContextGenerator(workspacePath, forceIncludedFiles);
 
 			const config = getConfig();
-			await contextGenerator.handleContextGeneration({
-				...options,
-				includePackageJson: config.includePackageJson,
-				outputMethod: config.outputMethod,
-				outputLanguage: config.outputLanguage,
-			});
+			const { tokenCount, outputMethod } =
+				await contextGenerator.handleContextGeneration({
+					...options,
+					includePackageJson: config.includePackageJson,
+					outputMethod: config.outputMethod,
+					outputLanguage: config.outputLanguage,
+				});
+
+			if (tokenCount === 0) {
+				return;
+			}
+
+			const threshold = config.tokenWarningThreshold;
+			const message = `LLM-ready context ${outputMethod === 'clipboard' ? 'copied to clipboard' : 'opened in new window'}. (${tokenCount} tokens${tokenCount > threshold ? `, which is greater than ${threshold} tokens` : ''})`;
+			if (tokenCount > threshold) {
+				showMessage.warning(message);
+			} else {
+				showMessage.info(message);
+			}
 		} catch (error) {
 			console.error('Error in generateContext:', error);
 			throw error;
@@ -44,7 +57,6 @@ export const createContext = {
 			await this.generateContext(workspacePath, {
 				bypassFileTypeEnforcement: false,
 			});
-			showMessage.info('Context generation completed successfully');
 		} catch (error: unknown) {
 			const errorMessage =
 				error instanceof Error ? error.message : 'An unknown error occurred';
@@ -56,19 +68,20 @@ export const createContext = {
 	},
 
 	async forOpenFile() {
-		const workspacePath = validateWorkspace();
-		const openFilePath = workspacePath && getActiveFilePath();
-		if (workspacePath && openFilePath) {
-			await this.generateContext(workspacePath, {
-				openFilePath,
-				bypassFileTypeEnforcement: true,
-			});
+		const openFilePath = getActiveFilePath();
+		if (!openFilePath) {
+			return;
 		}
+		await this.generateContext('', {
+			openFilePath,
+			bypassFileTypeEnforcement: true,
+		});
 	},
 
 	async forMarkedFiles() {
 		const workspacePath = validateWorkspace();
 		if (!workspacePath) {
+			showMessage.warning('This feature requires a workspace to be open.');
 			return;
 		}
 		if (markedFiles.size === 0) {

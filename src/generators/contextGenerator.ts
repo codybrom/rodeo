@@ -8,7 +8,6 @@ import {
 	getExtension,
 	resolvePath,
 	getDirname,
-	getBasename,
 } from '../utils/fileUtils';
 import { formatFileComment } from '../utils/markdownUtils';
 import { estimateTokenCount } from '../utils/tokenUtils';
@@ -16,18 +15,30 @@ import { extractImports } from '../utils/importParser';
 import { initializeIgnoreFilter, isIgnored } from '../utils/ignoreUtils';
 import { getConfig, showMessage } from '../utils/vscodeUtils';
 import { env, ViewColumn, window, workspace } from 'vscode';
+import {
+	forceIncludedFiles,
+	markedFilesProvider,
+	markedFiles,
+} from '../providers/markedFilesProvider';
 
 export class ContextGenerator {
 	private detectedFileExtensions: string[];
 	private enforceFileTypes: boolean;
+	private skippedFiles: { path: string; reason: string }[];
+	private forceIncludedFiles: Set<string>;
 
-	constructor(private workspacePath: string) {
+	constructor(
+		private workspacePath: string,
+		forceIncludedFiles?: Set<string>,
+	) {
 		if (!workspacePath) {
 			throw new Error('Workspace path must be provided');
 		}
 		const config = getConfig();
 		this.detectedFileExtensions = config.detectedFileExtensions;
 		this.enforceFileTypes = config.enforceFileTypes;
+		this.skippedFiles = [];
+		this.forceIncludedFiles = forceIncludedFiles ?? new Set();
 		initializeIgnoreFilter(workspacePath);
 	}
 
@@ -36,7 +47,7 @@ export class ContextGenerator {
 			outputMethod?: string;
 			outputLanguage?: string;
 		},
-	): Promise<void> {
+	): Promise<{ tokenCount: number; outputMethod: string }> {
 		try {
 			const outputMethod = options.outputMethod || 'clipboard';
 			const outputLanguage = options.outputLanguage || 'plaintext';
@@ -45,11 +56,13 @@ export class ContextGenerator {
 
 			if (gptContext.length === 0) {
 				showMessage.warning('No files were found to include in the context.');
-				return;
+				return { tokenCount: 0, outputMethod };
 			}
 
 			await this.handleOutput(gptContext, outputMethod, outputLanguage);
-			await this.showTokenCount(gptContext);
+
+			const tokenCount = await estimateTokenCount(gptContext);
+			return { tokenCount, outputMethod };
 		} catch (error) {
 			console.error('Error in handleContextGeneration:', error);
 			throw error;
@@ -76,7 +89,6 @@ export class ContextGenerator {
 				await window.showTextDocument(document, ViewColumn.One);
 			} else if (outputMethod === 'clipboard') {
 				await env.clipboard.writeText(content);
-				showMessage.copySuccess();
 			}
 		} catch (error) {
 			console.error('Error in handleOutput:', error);
@@ -84,35 +96,25 @@ export class ContextGenerator {
 		}
 	}
 
-	private async showTokenCount(content: string): Promise<void> {
-		const tokenCount = await estimateTokenCount(content);
-		const threshold = getConfig().tokenWarningThreshold;
-
-		const message = `The generated context is approximately ${tokenCount} tokens${
-			tokenCount > threshold
-				? `, which is greater than ${threshold} tokens`
-				: ''
-		}.`;
-
-		if (tokenCount > threshold) {
-			showMessage.warning(message);
-		} else {
-			showMessage.info(message);
-		}
-	}
-
 	public async generateContext({
 		openFilePath,
 		markedFiles,
 		includePackageJson = false,
+		bypassFileTypeEnforcement = false,
 	}: ContextOptions): Promise<string> {
+		this.skippedFiles = []; // Clear skippedFiles before each context generation to prevent duplicate notifications
+
 		console.log('\n=== Starting context generation ===');
 		const contextParts: string[] = [];
 
 		try {
 			if (markedFiles?.length) {
 				console.log('Processing marked files');
-				await this.processMarkedFiles(markedFiles, contextParts);
+				await this.processMarkedFiles(
+					markedFiles,
+					contextParts,
+					bypassFileTypeEnforcement,
+				);
 			} else if (openFilePath) {
 				console.log('Processing open file');
 				await this.processOpenFile(openFilePath, contextParts);
@@ -129,6 +131,11 @@ export class ContextGenerator {
 			console.log(
 				`\nContext generation complete. Files processed: ${contextParts.length}`,
 			);
+			await this.notifySkippedFilesAndLasso(this.skippedFiles, {
+				openFilePath,
+				markedFiles,
+				includePackageJson,
+			});
 			return contextParts.join('\n');
 		} catch (error) {
 			console.error('Error during context generation:', error);
@@ -148,15 +155,24 @@ export class ContextGenerator {
 		filePath: string,
 		relPath: string,
 		contextParts: string[],
+		bypassFileTypeEnforcement = false,
 	): Promise<void> {
-		if (isIgnored(relPath)) {
-			showMessage.warning(
-				`Note: "${getBasename(filePath)}" matches patterns in your ignore files but will be included anyway since it was specifically selected.`,
-			);
+		if (
+			!bypassFileTypeEnforcement &&
+			!this.forceIncludedFiles.has(filePath) &&
+			isIgnored(relPath)
+		) {
+			this.skippedFiles.push({ path: filePath, reason: 'Ignored' });
+			return;
 		}
 
 		if (!isDirectory(filePath)) {
-			await this.processFile(filePath, relPath, contextParts);
+			await this.processFile(
+				filePath,
+				relPath,
+				contextParts,
+				bypassFileTypeEnforcement,
+			);
 		}
 	}
 
@@ -183,6 +199,7 @@ export class ContextGenerator {
 
 			// For imports, we do respect ignore patterns
 			if (isIgnored(relPath)) {
+				this.skippedFiles.push({ path: resolvedPath, reason: 'Ignored' });
 				continue;
 			}
 
@@ -194,6 +211,11 @@ export class ContextGenerator {
 				fileExists(resolvedPath)
 			) {
 				await this.processFile(resolvedPath, relPath, contextParts);
+			} else {
+				this.skippedFiles.push({
+					path: resolvedPath,
+					reason: 'Unsupported file type',
+				});
 			}
 		}
 	}
@@ -255,7 +277,7 @@ export class ContextGenerator {
 
 					// Check if file should be ignored
 					if (isIgnored(fileRelPath)) {
-						console.log('File is ignored by patterns:', fileRelPath);
+						this.skippedFiles.push({ path: filePath, reason: 'Ignored' });
 						continue;
 					}
 
@@ -271,7 +293,10 @@ export class ContextGenerator {
 						this.enforceFileTypes &&
 						!this.detectedFileExtensions.includes(extension)
 					) {
-						console.log(`Skipping unsupported file type: ${extension}`);
+						this.skippedFiles.push({
+							path: filePath,
+							reason: 'Unsupported file type',
+						});
 						continue;
 					}
 
@@ -291,12 +316,18 @@ export class ContextGenerator {
 	private async processMarkedFiles(
 		files: string[],
 		contextParts: string[],
+		bypassFileTypeEnforcement = false,
 	): Promise<void> {
 		// Special case for single marked file
 		if (files.length === 1) {
 			const filePath = files[0];
 			const relPath = getRelativePath(this.workspacePath, filePath);
-			await this.handleSingleFile(filePath, relPath, contextParts);
+			await this.handleSingleFile(
+				filePath,
+				relPath,
+				contextParts,
+				bypassFileTypeEnforcement,
+			);
 			return;
 		}
 
@@ -304,7 +335,12 @@ export class ContextGenerator {
 		for (const filePath of files) {
 			const relPath = getRelativePath(this.workspacePath, filePath);
 			if (!isDirectory(filePath)) {
-				await this.processFile(filePath, relPath, contextParts);
+				await this.processFile(
+					filePath,
+					relPath,
+					contextParts,
+					bypassFileTypeEnforcement,
+				);
 			}
 		}
 	}
@@ -313,10 +349,13 @@ export class ContextGenerator {
 		filePath: string,
 		relPath: string,
 		contextParts: string[],
+		bypassFileTypeEnforcement = false,
 	): Promise<void> {
 		const fileExtension = getExtension(filePath);
 		try {
 			if (
+				bypassFileTypeEnforcement ||
+				this.forceIncludedFiles.has(filePath) ||
 				!this.enforceFileTypes ||
 				this.detectedFileExtensions.includes(fileExtension)
 			) {
@@ -324,7 +363,10 @@ export class ContextGenerator {
 				contextParts.push(`${formatFileComment(fileData)}\n\n`);
 				console.log('Successfully added to context:', relPath);
 			} else {
-				console.log('Skipping file due to extension:', relPath);
+				this.skippedFiles.push({
+					path: filePath,
+					reason: 'Unsupported file type',
+				});
 			}
 		} catch (error) {
 			console.error(`Error processing file ${relPath}:`, error);
@@ -342,8 +384,65 @@ export class ContextGenerator {
 			contextParts.push(`${formatFileComment(fileData)}\n\n`);
 		}
 	}
+
+	private async notifySkippedFilesAndLasso(
+		skippedFiles: { path: string; reason: string }[],
+		contextOptions: ContextOptions & {
+			outputMethod?: string;
+			outputLanguage?: string;
+		},
+	): Promise<void> {
+		// Filter out files already marked or forcibly included
+		const { markedFiles = [] } = contextOptions;
+		const filteredSkippedFiles = skippedFiles.filter(
+			(f) =>
+				!markedFiles.includes(f.path) && !this.forceIncludedFiles.has(f.path),
+		);
+		if (!filteredSkippedFiles.length) {
+			return;
+		}
+		const skippedList = filteredSkippedFiles
+			.map((f) => `• ${f.path} (${f.reason})`)
+			.join('\n');
+		const message = `Skipped ${filteredSkippedFiles.length} file(s):\n${skippedList}`;
+		const lassoBtn = '🤠 Lasso Anyway';
+		const selection = await window.showWarningMessage(message, lassoBtn);
+		if (selection === lassoBtn) {
+			// Re-run context generation, forcibly including these files
+			await this.lassoAnyway(filteredSkippedFiles, contextOptions);
+		}
+	}
+
+	private async lassoAnyway(
+		skippedFiles: { path: string; reason: string }[],
+		contextOptions: ContextOptions & {
+			outputMethod?: string;
+			outputLanguage?: string;
+		},
+	): Promise<void> {
+		// Add skipped files to markedFiles or override ignore/type checks
+		const forceIncludeFiles = skippedFiles.map((f) => f.path);
+		// Ensure forcibly included files are globally tracked and reflected in UI
+		forceIncludeFiles.forEach((f) => {
+			markedFiles.add(f);
+			forceIncludedFiles.add(f);
+		});
+		await markedFilesProvider.refresh(); // Ensure UI and token count update
+		// Notify user of how many files were forcibly marked in this transaction
+		showMessage.info(`Marked ${forceIncludeFiles.length} file(s) via lasso!`);
+		await this.handleContextGeneration({
+			...contextOptions,
+			markedFiles: [
+				...(contextOptions.markedFiles ?? []),
+				...forceIncludeFiles,
+			],
+			// Optionally add a flag to bypass ignores/types if needed
+			bypassFileTypeEnforcement: true,
+		});
+	}
 }
 
 export const createContextGenerator = (
 	workspacePath: string,
-): ContextGenerator => new ContextGenerator(workspacePath);
+	forceIncludedFiles?: Set<string>,
+): ContextGenerator => new ContextGenerator(workspacePath, forceIncludedFiles);

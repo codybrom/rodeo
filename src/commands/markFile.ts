@@ -1,5 +1,8 @@
-import { TreeItem, Uri } from 'vscode';
-import { markedFiles } from '../providers/markedFilesProvider';
+import { TreeItem, Uri, window } from 'vscode';
+import {
+	markedFiles,
+	forceIncludedFiles,
+} from '../providers/markedFilesProvider';
 import type { MarkedFilesProvider } from '../providers/markedFilesProvider';
 import {
 	getActiveFilePath,
@@ -9,7 +12,6 @@ import {
 } from '../utils/vscodeUtils';
 import {
 	getBasename,
-	getDirname,
 	getExtension,
 	getRelativePath,
 	isDirectory,
@@ -19,22 +21,17 @@ import {
 import { initializeIgnoreFilter, isIgnored } from '../utils/ignoreUtils';
 
 export const markFile = {
-	async updateMarkedFiles(
-		action: () => void,
-		message: string,
-		markedFilesProvider: MarkedFilesProvider,
-	): Promise<void> {
+	async updateMarkedFiles(action: () => void, message: string): Promise<void> {
 		action();
 		showMessage.info(message);
-		await markedFilesProvider.refresh();
 	},
 
-	unmarkFile(filePath: string, markedFilesProvider: MarkedFilesProvider) {
-		this.updateMarkedFiles(
+	async unmarkFile(filePath: string, markedFilesProvider: MarkedFilesProvider) {
+		await this.updateMarkedFiles(
 			() => markedFiles.delete(filePath),
 			`Unmarked: ${getBasename(filePath)}`,
-			markedFilesProvider,
 		);
+		await markedFilesProvider.refresh();
 	},
 
 	isFileTypeSupported(filePath: string): boolean {
@@ -74,17 +71,18 @@ export const markFile = {
 		markedFilesProvider: MarkedFilesProvider,
 	): Promise<boolean> {
 		const relPath = getRelativePath(workspacePath, filePath);
+		const skippedFiles: { path: string; reason: string }[] = [];
 
 		if (isIgnored(relPath)) {
-			showMessage.warning(
-				`Note: "${getBasename(filePath)}" matches patterns in your ignore files but will be marked anyway since it was specifically selected.`,
-			);
+			skippedFiles.push({ path: filePath, reason: 'Ignored by patterns' });
 		}
 
 		if (!this.isFileTypeSupported(filePath)) {
-			showMessage.warning(
-				`Cannot mark "${getBasename(filePath)}": Unsupported file type (.${getExtension(filePath)})\nSupported types: ${getConfig().detectedFileExtensions.join(', ')}\nYou can add more file types in Settings > Rodeo – LLM Context Generator > Detected File Extensions`,
-			);
+			skippedFiles.push({
+				path: filePath,
+				reason: `Unsupported file type (.${getExtension(filePath)})`,
+			});
+			await this.notifySkippedFilesAndLasso(skippedFiles, markedFilesProvider);
 			return false;
 		}
 
@@ -92,12 +90,57 @@ export const markFile = {
 			this.updateMarkedFiles(
 				() => markedFiles.add(filePath),
 				`Marked: ${getBasename(filePath)}`,
-				markedFilesProvider,
 			);
+			await markedFilesProvider.refresh();
 		} else {
 			showMessage.info('Selected file is already marked.');
 		}
+
+		if (skippedFiles.length > 0) {
+			await this.notifySkippedFilesAndLasso(skippedFiles, markedFilesProvider);
+		}
 		return true;
+	},
+
+	async notifySkippedFilesAndLasso(
+		skippedFiles: { path: string; reason: string }[],
+		markedFilesProvider: MarkedFilesProvider,
+	) {
+		if (!skippedFiles.length) {
+			return;
+		}
+		const maxToShow = 5;
+		const fileNames = skippedFiles.map((f) => getBasename(f.path));
+		let fileList = fileNames.slice(0, maxToShow).join(', ');
+		if (fileNames.length > maxToShow) {
+			fileList += `, ...+${fileNames.length - maxToShow} more`;
+		}
+		const uniqueReasons = [...new Set(skippedFiles.map((f) => f.reason))];
+		const reasonList = uniqueReasons.join('; ');
+		const message =
+			`Rodeo skipped ${skippedFiles.length} file(s): ${fileList}\n` +
+			`Reasons: ${reasonList}\n\n` +
+			'Lasso skipped files into context anyways?';
+		const lassoBtn = '🤠 YEE HAW!';
+		const dismissBtn = 'NAW (Dismiss)';
+		const selection = await window.showWarningMessage(
+			message,
+			lassoBtn,
+			dismissBtn,
+		);
+		if (selection === lassoBtn) {
+			// Directly add skipped files, bypassing all checks and notifications!
+			skippedFiles.forEach((f) => {
+				markedFiles.add(f.path);
+				forceIncludedFiles.add(f.path);
+			});
+			await markedFilesProvider.refresh();
+			// Notify user of how many files were forcibly marked in this transaction
+			showMessage.info(
+				`Lasso'd ${skippedFiles.length} skipped file(s) into context!`,
+			);
+		}
+		// If dismissed, do nothing
 	},
 
 	async unmarkFromTreeView(
@@ -123,10 +166,8 @@ export const markFile = {
 			return;
 		}
 
-		// Make sure ignore patterns are loaded for this workspace
 		initializeIgnoreFilter(workspacePath);
 
-		// Single file case - allow ignored files with warning
 		if (uris.length === 1 && !isDirectory(uris[0].fsPath)) {
 			await this.handleSingleFile(
 				uris[0].fsPath,
@@ -140,13 +181,12 @@ export const markFile = {
 
 		console.log(`Processing ${uris.length} files as batch`);
 
-		// For multiple files, we need to check each one first
 		const ignoredFiles = new Set<string>();
 		const unsupportedFiles = new Set<string>();
 		const filesToAdd = new Set<string>();
 		const alreadyMarked = new Set<string>();
 
-		// Check all files first to collect what should be ignored/unsupported
+		// First pass: mark all selectable (not ignored, not unsupported, not already marked) files immediately
 		for (const uri of uris) {
 			const filePath = uri.fsPath;
 			const relPath = getRelativePath(workspacePath, filePath);
@@ -155,7 +195,6 @@ export const markFile = {
 			console.log(`Relative path: ${relPath}`);
 			console.log(`Is ignored: ${isIgnored(relPath)}`);
 
-			// Check ignore status first for ALL files, even if they're directories
 			if (isIgnored(relPath)) {
 				console.log(`Adding to ignored files: ${filePath}`);
 				ignoredFiles.add(filePath);
@@ -171,7 +210,8 @@ export const markFile = {
 					alreadyMarked.add(filePath);
 					continue;
 				}
-				console.log(`Adding to files to add: ${filePath}`);
+				// Mark immediately
+				markedFiles.add(filePath);
 				filesToAdd.add(filePath);
 			} else {
 				await this.processPath(
@@ -185,31 +225,29 @@ export const markFile = {
 			}
 		}
 
-		// Show warnings for ignored files
-		if (ignoredFiles.size > 0) {
-			const ignoreFiles = getConfig().ignoreFiles;
-			showMessage.warning(
-				`Skipped ${ignoredFiles.size} file(s) matching patterns in ignore files (${ignoreFiles.join(', ')}):\n${Array.from(
-					ignoredFiles,
-				)
-					.map((file) => `• ${getBasename(file)} (${getDirname(file)})`)
-					.join('\n')}`,
-			);
+		await markedFilesProvider.refresh();
+
+		// Notification for initially marked files
+		if (filesToAdd.size > 0) {
+			showMessage.info(`Marked ${filesToAdd.size} file(s) for context.`);
 		}
 
-		if (unsupportedFiles.size > 0) {
-			showMessage.warning(
-				`Skipped ${unsupportedFiles.size} unsupported file(s):\n${Array.from(
-					unsupportedFiles,
-				)
-					.map((file) => `• ${getBasename(file)} (.${getExtension(file)})`)
-					.join(
-						'\n',
-					)}\nYou can add file types in Settings > Rodeo – LLM Context Generator > Detected File Extensions`,
-			);
+		const skippedFiles: { path: string; reason: string }[] = [];
+		ignoredFiles.forEach((path) =>
+			skippedFiles.push({ path, reason: 'Ignored by patterns' }),
+		);
+		unsupportedFiles.forEach((path) =>
+			skippedFiles.push({
+				path,
+				reason: `Unsupported file type (.${getExtension(path)})`,
+			}),
+		);
+
+		// Prompt to optionally lasso skipped files
+		if (skippedFiles.length > 0) {
+			await this.notifySkippedFilesAndLasso(skippedFiles, markedFilesProvider);
 		}
 
-		// Only proceed if we have valid files to add
 		if (filesToAdd.size === 0) {
 			if (
 				alreadyMarked.size > 0 &&
@@ -220,13 +258,6 @@ export const markFile = {
 			}
 			return;
 		}
-
-		// Now we can safely add only the valid files
-		this.updateMarkedFiles(
-			() => filesToAdd.forEach((fsPath) => markedFiles.add(fsPath)),
-			`Marked ${filesToAdd.size} file(s)`,
-			markedFilesProvider,
-		);
 	},
 
 	async processPath(
@@ -239,7 +270,6 @@ export const markFile = {
 	): Promise<void> {
 		const relPath = getRelativePath(workspacePath, path);
 
-		// Check ignore status first, before anything else
 		if (isIgnored(relPath)) {
 			ignoredFiles.add(path);
 			return;

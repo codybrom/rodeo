@@ -22,13 +22,9 @@ export const getConfig = () => {
 };
 
 export const showMessage = {
-	info: (message: string) =>
-		window.showInformationMessage(message, { title: '🤠 YEE HAW!' }),
-	error: (message: string) =>
-		window.showErrorMessage(message, { title: 'yee haw.' }),
-	warning: (message: string) =>
-		window.showWarningMessage(message, { title: 'Yee...haw? ' }),
-	copySuccess: () => showMessage.info('LLM-ready context copied to clipboard.'),
+	info: (message: string) => window.showInformationMessage(message),
+	error: (message: string) => window.showErrorMessage(message),
+	warning: (message: string) => window.showWarningMessage(message),
 	tokenCount: (count: number) => {
 		const threshold = getConfig().tokenWarningThreshold;
 		const message = `The generated context is approximately ${count} tokens${
@@ -44,7 +40,6 @@ export const showMessage = {
 
 export const validateWorkspace = (): string | null => {
 	if (!workspace.workspaceFolders) {
-		showMessage.error('Please open a workspace to use this extension.');
 		return null;
 	}
 	return workspace.workspaceFolders[0].uri.fsPath;

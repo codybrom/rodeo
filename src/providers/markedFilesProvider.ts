@@ -21,6 +21,7 @@ import { estimateTokenCount } from '../utils/tokenUtils';
 import { createContextGenerator } from '../generators/contextGenerator';
 
 export const markedFiles = new Set<string>();
+export const forceIncludedFiles = new Set<string>();
 
 export class MarkedFilesProvider
 	implements TreeDataProvider<TreeItem>, FileDecorationProvider
@@ -158,7 +159,8 @@ export class MarkedFilesProvider
 			return;
 		}
 
-		const contextGenerator = createContextGenerator(workspacePath);
+		// Pass forceIncludedFiles so forcibly marked files are always counted
+		const contextGenerator = createContextGenerator(workspacePath, forceIncludedFiles);
 		const formattedContext = await contextGenerator.generateContext({
 			markedFiles: Array.from(markedFiles),
 		});
@@ -171,3 +173,7 @@ export class MarkedFilesProvider
 		this.refresh();
 	}
 }
+
+// Export a singleton provider instance for global use
+// Must be declared after the class definition to avoid 'used before its declaration' error
+export const markedFilesProvider = new MarkedFilesProvider();
