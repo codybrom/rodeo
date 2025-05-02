@@ -279,8 +279,8 @@
 		"@types/mocha": "^10.0.10",
 		"@types/node": "^22.15.3",
 		"@types/vscode": "^1.99.1",
-		"@typescript-eslint/eslint-plugin": "^8.31.0",
-		"@typescript-eslint/parser": "^8.31.0",
+		"@typescript-eslint/eslint-plugin": "^8.31.1",
+		"@typescript-eslint/parser": "^8.31.1",
 		"@vscode/test-electron": "^2.5.2",
 		"esbuild": "^0.25.3",
 		"esbuild-register": "^3.6.0",
@@ -289,7 +289,7 @@
 		"mocha": "^11.1.0",
 		"prettier": "^3.5.3",
 		"typescript": "^5.8.3",
-		"typescript-eslint": "^8.31.0"
+		"typescript-eslint": "^8.31.1"
 	},
 	"prettier": {
 		"semi": true,
