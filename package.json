@@ -270,26 +270,26 @@
 	"dependencies": {
 		"@dqbd/tiktoken": "^1.0.21",
 		"highlight.js": "^11.11.1",
-		"ignore": "^7.0.4"
+		"ignore": "^7.0.5"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.26.0",
-		"@stylistic/eslint-plugin": "^4.2.0",
+		"@eslint/js": "^9.28.0",
+		"@stylistic/eslint-plugin": "^4.4.0",
 		"@types/glob": "^8.1.0",
 		"@types/mocha": "^10.0.10",
-		"@types/node": "^22.15.17",
+		"@types/node": "^22.15.29",
 		"@types/vscode": "^1.100.0",
-		"@typescript-eslint/eslint-plugin": "^8.32.0",
-		"@typescript-eslint/parser": "^8.32.0",
+		"@typescript-eslint/eslint-plugin": "^8.33.0",
+		"@typescript-eslint/parser": "^8.33.0",
 		"@vscode/test-electron": "^2.5.2",
-		"esbuild": "^0.25.4",
+		"esbuild": "^0.25.5",
 		"esbuild-register": "^3.6.0",
-		"eslint": "^9.26.0",
+		"eslint": "^9.28.0",
 		"glob": "^11.0.2",
-		"mocha": "^11.2.2",
+		"mocha": "^11.5.0",
 		"prettier": "^3.5.3",
 		"typescript": "^5.8.3",
-		"typescript-eslint": "^8.32.0"
+		"typescript-eslint": "^8.33.0"
 	},
 	"prettier": {
 		"semi": true,
