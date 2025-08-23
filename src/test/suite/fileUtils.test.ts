@@ -24,18 +24,18 @@ describe('fileUtils', () => {
 	describe('fileExists', () => {
 		it('should return true when file exists', () => {
 			(fs.existsSync as jest.Mock).mockReturnValue(true);
-			
+
 			const result = fileExists('/path/to/file.txt');
-			
+
 			expect(result).toBe(true);
 			expect(fs.existsSync).toHaveBeenCalledWith('/path/to/file.txt');
 		});
 
 		it('should return false when file does not exist', () => {
 			(fs.existsSync as jest.Mock).mockReturnValue(false);
-			
+
 			const result = fileExists('/path/to/nonexistent.txt');
-			
+
 			expect(result).toBe(false);
 			expect(fs.existsSync).toHaveBeenCalledWith('/path/to/nonexistent.txt');
 		});
@@ -119,15 +119,21 @@ describe('fileUtils', () => {
 		});
 
 		it('should throw error when from path is missing', () => {
-			expect(() => getRelativePath('', '/to/path')).toThrow('Invalid path: both from and to paths must be provided');
+			expect(() => getRelativePath('', '/to/path')).toThrow(
+				'Invalid path: both from and to paths must be provided',
+			);
 		});
 
 		it('should throw error when to path is missing', () => {
-			expect(() => getRelativePath('/from/path', '')).toThrow('Invalid path: both from and to paths must be provided');
+			expect(() => getRelativePath('/from/path', '')).toThrow(
+				'Invalid path: both from and to paths must be provided',
+			);
 		});
 
 		it('should throw error when both paths are missing', () => {
-			expect(() => getRelativePath('', '')).toThrow('Invalid path: both from and to paths must be provided');
+			expect(() => getRelativePath('', '')).toThrow(
+				'Invalid path: both from and to paths must be provided',
+			);
 		});
 	});
 
@@ -136,9 +142,9 @@ describe('fileUtils', () => {
 			(fs.lstatSync as jest.Mock).mockReturnValue({
 				isDirectory: () => true,
 			});
-			
+
 			const result = isDirectory('/path/to/dir');
-			
+
 			expect(result).toBe(true);
 			expect(fs.lstatSync).toHaveBeenCalledWith('/path/to/dir');
 		});
@@ -147,9 +153,9 @@ describe('fileUtils', () => {
 			(fs.lstatSync as jest.Mock).mockReturnValue({
 				isDirectory: () => false,
 			});
-			
+
 			const result = isDirectory('/path/to/file.txt');
-			
+
 			expect(result).toBe(false);
 			expect(fs.lstatSync).toHaveBeenCalledWith('/path/to/file.txt');
 		});
@@ -159,18 +165,18 @@ describe('fileUtils', () => {
 		it('should return list of files in directory', () => {
 			const mockFiles = ['file1.txt', 'file2.js', 'subdir'];
 			(fs.readdirSync as jest.Mock).mockReturnValue(mockFiles);
-			
+
 			const result = listFiles('/path/to/dir');
-			
+
 			expect(result).toEqual(mockFiles);
 			expect(fs.readdirSync).toHaveBeenCalledWith('/path/to/dir');
 		});
 
 		it('should return empty array for empty directory', () => {
 			(fs.readdirSync as jest.Mock).mockReturnValue([]);
-			
+
 			const result = listFiles('/empty/dir');
-			
+
 			expect(result).toEqual([]);
 			expect(fs.readdirSync).toHaveBeenCalledWith('/empty/dir');
 		});
@@ -180,9 +186,9 @@ describe('fileUtils', () => {
 		it('should read file content as UTF-8', () => {
 			const mockContent = 'File content here';
 			(fs.readFileSync as jest.Mock).mockReturnValue(mockContent);
-			
+
 			const result = readFileContent('/path/to/file.txt');
-			
+
 			expect(result).toBe(mockContent);
 			expect(fs.readFileSync).toHaveBeenCalledWith('/path/to/file.txt', 'utf8');
 		});
@@ -190,9 +196,9 @@ describe('fileUtils', () => {
 		it('should handle multiline content', () => {
 			const mockContent = 'Line 1\nLine 2\nLine 3';
 			(fs.readFileSync as jest.Mock).mockReturnValue(mockContent);
-			
+
 			const result = readFileContent('/path/to/multiline.txt');
-			
+
 			expect(result).toBe(mockContent);
 		});
 	});
@@ -202,19 +208,22 @@ describe('fileUtils', () => {
 			const mockPackageJson = '{"name": "test-project", "version": "1.0.0"}';
 			(fs.existsSync as jest.Mock).mockReturnValue(true);
 			(fs.readFileSync as jest.Mock).mockReturnValue(mockPackageJson);
-			
+
 			const result = readPackageJson('/workspace');
-			
+
 			expect(result).toBe(mockPackageJson);
 			expect(fs.existsSync).toHaveBeenCalledWith('/workspace/package.json');
-			expect(fs.readFileSync).toHaveBeenCalledWith('/workspace/package.json', 'utf8');
+			expect(fs.readFileSync).toHaveBeenCalledWith(
+				'/workspace/package.json',
+				'utf8',
+			);
 		});
 
 		it('should return null when package.json does not exist', () => {
 			(fs.existsSync as jest.Mock).mockReturnValue(false);
-			
+
 			const result = readPackageJson('/workspace');
-			
+
 			expect(result).toBeNull();
 			expect(fs.existsSync).toHaveBeenCalledWith('/workspace/package.json');
 			expect(fs.readFileSync).not.toHaveBeenCalled();
@@ -223,9 +232,9 @@ describe('fileUtils', () => {
 		it('should handle workspace paths with trailing slash', () => {
 			(fs.existsSync as jest.Mock).mockReturnValue(true);
 			(fs.readFileSync as jest.Mock).mockReturnValue('{}');
-			
+
 			const result = readPackageJson('/workspace/');
-			
+
 			expect(result).toBe('{}');
 			expect(fs.existsSync).toHaveBeenCalledWith('/workspace/package.json');
 		});
@@ -248,21 +257,29 @@ describe('fileUtils', () => {
 		});
 
 		it('should throw error when no paths provided', () => {
-			expect(() => resolvePath()).toThrow('Invalid path: path segments must not be empty');
+			expect(() => resolvePath()).toThrow(
+				'Invalid path: path segments must not be empty',
+			);
 		});
 
 		it('should throw error when path segment is empty', () => {
-			expect(() => resolvePath('/base', '', 'file.txt')).toThrow('Invalid path: path segments must not be empty');
+			expect(() => resolvePath('/base', '', 'file.txt')).toThrow(
+				'Invalid path: path segments must not be empty',
+			);
 		});
 
 		it('should throw error when path segment is null', () => {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			expect(() => resolvePath('/base', null as any, 'file.txt')).toThrow('Invalid path: path segments must not be empty');
+			expect(() => resolvePath('/base', null as any, 'file.txt')).toThrow(
+				'Invalid path: path segments must not be empty',
+			);
 		});
 
 		it('should throw error when path segment is undefined', () => {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			expect(() => resolvePath('/base', undefined as any, 'file.txt')).toThrow('Invalid path: path segments must not be empty');
+			expect(() => resolvePath('/base', undefined as any, 'file.txt')).toThrow(
+				'Invalid path: path segments must not be empty',
+			);
 		});
 	});
 });

@@ -8,17 +8,19 @@ jest.mock('../../utils/fileUtils', () => ({
 	readPackageJson: jest.fn().mockReturnValue('{"name": "test"}'),
 	isDirectory: jest.fn().mockReturnValue(false),
 	listFiles: jest.fn().mockReturnValue([]),
-	getRelativePath: jest.fn().mockImplementation((_, file) =>
-		file.replace('/test/workspace/', ''),
-	),
-	getExtension: jest.fn().mockImplementation((path) => path.split('.').pop() || ''),
+	getRelativePath: jest
+		.fn()
+		.mockImplementation((_, file) => file.replace('/test/workspace/', '')),
+	getExtension: jest
+		.fn()
+		.mockImplementation((path) => path.split('.').pop() || ''),
 	resolvePath: jest.fn().mockImplementation((dir, file) => `${dir}/${file}`),
-	getDirname: jest.fn().mockImplementation((path) =>
-		path.substring(0, path.lastIndexOf('/')),
-	),
-	getBasename: jest.fn().mockImplementation(path => 
-		path.split('/').pop() || ''
-	),
+	getDirname: jest
+		.fn()
+		.mockImplementation((path) => path.substring(0, path.lastIndexOf('/'))),
+	getBasename: jest
+		.fn()
+		.mockImplementation((path) => path.split('/').pop() || ''),
 }));
 
 jest.mock('../../utils/vscodeUtils', () => ({
@@ -53,9 +55,11 @@ jest.mock('../../utils/tokenUtils', () => ({
 }));
 
 jest.mock('../../utils/markdownUtils', () => ({
-	formatFileComment: jest.fn().mockImplementation(
-		(fileData: any) => `// ${fileData.path}\n${fileData.content}`,
-	),
+	formatFileComment: jest
+		.fn()
+		.mockImplementation(
+			(fileData: any) => `// ${fileData.path}\n${fileData.content}`,
+		),
 }));
 
 jest.mock('../../utils/importParser', () => ({
@@ -86,7 +90,7 @@ const vscode = require('vscode');
 describe('ContextGenerator', () => {
 	// Get mocked modules
 	const mockVscode = vscode;
-	// eslint-disable-next-line @typescript-eslint/no-require-imports  
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	const mockFileUtils = require('../../utils/fileUtils');
 	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	const mockVscodeUtils = require('../../utils/vscodeUtils');
@@ -111,10 +115,12 @@ describe('ContextGenerator', () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks();
-		
+
 		// Setup vscode mock defaults
 		if (mockVscode.workspace) {
-			mockVscode.workspace.workspaceFolders = [{ uri: { fsPath: '/test/workspace' } }];
+			mockVscode.workspace.workspaceFolders = [
+				{ uri: { fsPath: '/test/workspace' } },
+			];
 			if (mockVscode.workspace.openTextDocument) {
 				mockVscode.workspace.openTextDocument.mockResolvedValue({
 					uri: { fsPath: '/test/document.md' },
@@ -127,7 +133,7 @@ describe('ContextGenerator', () => {
 		if (mockVscode.env?.clipboard?.writeText) {
 			mockVscode.env.clipboard.writeText.mockResolvedValue(undefined);
 		}
-		
+
 		// Reset mocks to default behavior
 		mockVscodeUtils.getConfig.mockReturnValue(mockConfig);
 		mockFileUtils.fileExists.mockReturnValue(true);
@@ -144,11 +150,15 @@ describe('ContextGenerator', () => {
 		it('should initialize with workspace path', () => {
 			const generator = new ContextGenerator('/test/workspace');
 			expect(generator).toBeDefined();
-			expect(mockIgnoreUtils.initializeIgnoreFilter).toHaveBeenCalledWith('/test/workspace');
+			expect(mockIgnoreUtils.initializeIgnoreFilter).toHaveBeenCalledWith(
+				'/test/workspace',
+			);
 		});
 
 		it('should throw error if workspace path is empty', () => {
-			expect(() => new ContextGenerator('')).toThrow('Workspace path must be provided');
+			expect(() => new ContextGenerator('')).toThrow(
+				'Workspace path must be provided',
+			);
 		});
 
 		it('should initialize with force included files', () => {
@@ -166,12 +176,15 @@ describe('ContextGenerator', () => {
 		});
 
 		it('should generate context for marked files', async () => {
-			const mockFiles = ['/test/workspace/file1.ts', '/test/workspace/file2.ts'];
-			
+			const mockFiles = [
+				'/test/workspace/file1.ts',
+				'/test/workspace/file2.ts',
+			];
+
 			const result = await generator.generateContext({
 				markedFiles: mockFiles,
 			});
-			
+
 			expect(typeof result).toBe('string');
 			expect(mockFileUtils.readFileContent).toHaveBeenCalled();
 			expect(mockMarkdownUtils.formatFileComment).toHaveBeenCalled();
@@ -180,22 +193,22 @@ describe('ContextGenerator', () => {
 		it('should process open file with imports', async () => {
 			const mockOpenFile = '/test/workspace/main.ts';
 			const mockImport = './helper.ts';
-			
+
 			mockImportParser.extractImports.mockReturnValue([mockImport]);
-			
+
 			const result = await generator.generateContext({
 				openFilePath: mockOpenFile,
 			});
-			
+
 			expect(typeof result).toBe('string');
 			expect(mockImportParser.extractImports).toHaveBeenCalled();
 		});
 
 		it('should process workspace directory', async () => {
 			mockFileUtils.listFiles.mockReturnValue(['file1.ts', 'file2.js']);
-			
+
 			const result = await generator.generateContext({});
-			
+
 			expect(mockFileUtils.listFiles).toHaveBeenCalledWith('/test/workspace');
 			expect(typeof result).toBe('string');
 		});
@@ -205,18 +218,20 @@ describe('ContextGenerator', () => {
 				markedFiles: ['/test/workspace/file.ts'],
 				includePackageJson: true,
 			});
-			
-			expect(mockFileUtils.readPackageJson).toHaveBeenCalledWith('/test/workspace');
+
+			expect(mockFileUtils.readPackageJson).toHaveBeenCalledWith(
+				'/test/workspace',
+			);
 			expect(result).toContain('package.json');
 		});
 
 		it('should skip ignored files', async () => {
 			mockIgnoreUtils.isIgnored.mockReturnValue(true);
-			
+
 			const result = await generator.generateContext({
 				markedFiles: ['/test/workspace/ignored.ts'],
 			});
-			
+
 			expect(typeof result).toBe('string');
 		});
 
@@ -224,11 +239,11 @@ describe('ContextGenerator', () => {
 			mockConfig.enforceFileTypes = true;
 			mockConfig.detectedFileExtensions = ['ts'];
 			mockFileUtils.getExtension.mockReturnValue('txt');
-			
+
 			const result = await generator.generateContext({
 				markedFiles: ['/test/workspace/readme.txt'],
 			});
-			
+
 			expect(typeof result).toBe('string');
 		});
 
@@ -237,7 +252,7 @@ describe('ContextGenerator', () => {
 				markedFiles: ['/test/workspace/any.xyz'],
 				bypassFileTypeEnforcement: true,
 			});
-			
+
 			expect(typeof result).toBe('string');
 		});
 
@@ -245,22 +260,26 @@ describe('ContextGenerator', () => {
 			mockFileUtils.listFiles
 				.mockReturnValueOnce(['subdir', 'file1.ts'])
 				.mockReturnValueOnce(['file2.ts']);
-			mockFileUtils.isDirectory.mockImplementation((path: string) => path.includes('subdir'));
+			mockFileUtils.isDirectory.mockImplementation((path: string) =>
+				path.includes('subdir'),
+			);
 			mockFileUtils.getExtension.mockReturnValue('ts');
-			
+
 			const result = await generator.generateContext({});
-			
+
 			expect(typeof result).toBe('string');
 			expect(mockFileUtils.listFiles).toHaveBeenCalled();
 		});
 
 		it('should skip .git directories', async () => {
 			mockFileUtils.listFiles.mockReturnValue(['.git', 'file1.ts']);
-			mockFileUtils.isDirectory.mockImplementation((path: string) => path.includes('.git'));
+			mockFileUtils.isDirectory.mockImplementation((path: string) =>
+				path.includes('.git'),
+			);
 			mockFileUtils.getExtension.mockReturnValue('ts');
-			
+
 			const result = await generator.generateContext({});
-			
+
 			expect(typeof result).toBe('string');
 		});
 
@@ -271,11 +290,11 @@ describe('ContextGenerator', () => {
 				}
 				return 'console.log("test");';
 			});
-			
+
 			const result = await generator.generateContext({
 				markedFiles: ['/test/workspace/good.ts', '/test/workspace/error.ts'],
 			});
-			
+
 			expect(typeof result).toBe('string');
 		});
 
@@ -283,9 +302,9 @@ describe('ContextGenerator', () => {
 			mockFileUtils.listFiles.mockImplementation(() => {
 				throw new Error('Permission denied');
 			});
-			
+
 			const result = await generator.generateContext({});
-			
+
 			expect(typeof result).toBe('string');
 		});
 
@@ -308,7 +327,7 @@ describe('ContextGenerator', () => {
 			const result = await generator.handleContextGeneration({
 				markedFiles: ['/test/workspace/file.ts'],
 			});
-			
+
 			expect(result.tokenCount).toBeGreaterThanOrEqual(0);
 			expect(result.outputMethod).toBe('clipboard');
 			expect(mockVscode.env.clipboard.writeText).toHaveBeenCalled();
@@ -320,7 +339,7 @@ describe('ContextGenerator', () => {
 				outputMethod: 'newWindow',
 				outputLanguage: 'markdown',
 			});
-			
+
 			expect(result.outputMethod).toBe('newWindow');
 			expect(mockVscode.workspace.openTextDocument).toHaveBeenCalled();
 			expect(mockVscode.window.showTextDocument).toHaveBeenCalled();
@@ -330,7 +349,7 @@ describe('ContextGenerator', () => {
 			const result = await generator.handleContextGeneration({
 				markedFiles: [],
 			});
-			
+
 			expect(result.tokenCount).toBe(0);
 			expect(mockVscodeUtils.showMessage.warning).toHaveBeenCalledWith(
 				'No files were found to include in the context.',
@@ -339,33 +358,33 @@ describe('ContextGenerator', () => {
 
 		it('should calculate token count', async () => {
 			mockTokenUtils.estimateTokenCount.mockResolvedValue(500);
-			
+
 			const result = await generator.handleContextGeneration({
 				markedFiles: ['/test/workspace/file.ts'],
 			});
-			
+
 			expect(result.tokenCount).toBeGreaterThanOrEqual(0);
 			expect(mockTokenUtils.estimateTokenCount).toHaveBeenCalled();
 		});
 
 		it('should handle skipped files', async () => {
 			mockIgnoreUtils.isIgnored.mockReturnValue(true);
-			
+
 			const result = await generator.handleContextGeneration({
 				markedFiles: ['/test/workspace/good.ts', '/test/workspace/skipped.txt'],
 			});
-			
+
 			expect(result.tokenCount).toBeGreaterThanOrEqual(0);
 		});
 
 		it('should handle lasso anyway scenario', async () => {
 			mockIgnoreUtils.isIgnored.mockReturnValue(true);
 			mockVscode.window.showWarningMessage.mockResolvedValue('🤠 Lasso Anyway');
-			
+
 			const result = await generator.handleContextGeneration({
 				markedFiles: ['/test/workspace/skipped.txt'],
 			});
-			
+
 			expect(result).toBeDefined();
 			expect(result.outputMethod).toBe('clipboard');
 		});
@@ -375,21 +394,25 @@ describe('ContextGenerator', () => {
 			mockFileUtils.readFileContent.mockImplementation(() => {
 				throw new Error('File read error');
 			});
-			
+
 			const result = await generator.handleContextGeneration({
 				markedFiles: ['/test/workspace/error.ts'],
 			});
-			
+
 			expect(result.tokenCount).toBeGreaterThanOrEqual(0);
 		});
 
 		it('should handle errors in output', async () => {
-			mockVscode.env.clipboard.writeText.mockRejectedValue(new Error('Clipboard error'));
-			
-			await expect(generator.handleContextGeneration({
-				markedFiles: ['/test/workspace/file.ts'],
-				outputMethod: 'clipboard',
-			})).rejects.toThrow('Clipboard error');
+			mockVscode.env.clipboard.writeText.mockRejectedValue(
+				new Error('Clipboard error'),
+			);
+
+			await expect(
+				generator.handleContextGeneration({
+					markedFiles: ['/test/workspace/file.ts'],
+					outputMethod: 'clipboard',
+				}),
+			).rejects.toThrow('Clipboard error');
 		});
 	});
 
@@ -401,7 +424,10 @@ describe('ContextGenerator', () => {
 
 		it('should create instance with force included files', () => {
 			const forceIncluded = new Set(['/test/file.ts']);
-			const generator = createContextGenerator('/test/workspace', forceIncluded);
+			const generator = createContextGenerator(
+				'/test/workspace',
+				forceIncluded,
+			);
 			expect(generator).toBeInstanceOf(ContextGenerator);
 		});
 	});

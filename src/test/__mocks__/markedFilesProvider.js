@@ -14,14 +14,14 @@ class MarkedFilesProvider {
 		} catch (e) {
 			// vscode module not available in test
 		}
-		
+
 		this.refresh = jest.fn();
 		this.getChildren = jest.fn(() => {
 			// Return TreeItems for marked files
-			return Array.from(markedFiles).map(file => ({
+			return Array.from(markedFiles).map((file) => ({
 				label: file.split('/').pop(),
 				resourceUri: { fsPath: file },
-				collapsibleState: 0
+				collapsibleState: 0,
 			}));
 		});
 		this.getTreeItem = jest.fn((element) => element);
@@ -44,7 +44,7 @@ class MarkedFilesProvider {
 				return {
 					badge: '📎',
 					tooltip: 'Marked for LLM Context',
-					color: undefined
+					color: undefined,
 				};
 			}
 			return undefined;

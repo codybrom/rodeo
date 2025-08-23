@@ -19,6 +19,7 @@ import {
 	resolvePath,
 } from '../utils/fileUtils';
 import { initializeIgnoreFilter, isIgnored } from '../utils/ignoreUtils';
+import { sep } from 'path';
 
 export const markFile = {
 	async updateMarkedFiles(action: () => void, message: string): Promise<void> {
@@ -257,6 +258,92 @@ export const markFile = {
 				showMessage.info('Selected items are already marked.');
 			}
 			return;
+		}
+	},
+
+	async unmarkItems(uris: Uri[], markedFilesProvider: MarkedFilesProvider) {
+		let unmarkedCount = 0;
+
+		for (const uri of uris) {
+			const filePath = uri.fsPath;
+
+			if (isDirectory(filePath)) {
+				// For directories, unmark all files within them recursively
+				const filesToUnmark = Array.from(markedFiles).filter((markedFile) =>
+					markedFile.startsWith(filePath + sep),
+				);
+
+				filesToUnmark.forEach((file) => {
+					markedFiles.delete(file);
+					forceIncludedFiles.delete(file);
+					unmarkedCount++;
+				});
+			} else if (markedFiles.has(filePath)) {
+				markedFiles.delete(filePath);
+				forceIncludedFiles.delete(filePath);
+				unmarkedCount++;
+			}
+		}
+
+		if (unmarkedCount > 0) {
+			await markedFilesProvider.refresh();
+			showMessage.info(`Unmarked ${unmarkedCount} file(s) from LLM context`);
+		} else {
+			showMessage.info('No marked files found to unmark');
+		}
+	},
+
+	async smartMarkUnmark(uris: Uri[], markedFilesProvider: MarkedFilesProvider) {
+		const selectedFiles = uris.map((uri) => uri.fsPath);
+		const markedCount = selectedFiles.filter((file) =>
+			markedFiles.has(file),
+		).length;
+		const unmarkedCount = selectedFiles.length - markedCount;
+
+		const options: { label: string; action: 'mark' | 'unmark' }[] = [];
+
+		if (unmarkedCount > 0) {
+			options.push({
+				label: `Mark ${unmarkedCount} file(s) for LLM Context`,
+				action: 'mark',
+			});
+		}
+
+		if (markedCount > 0) {
+			options.push({
+				label: `Unmark ${markedCount} file(s) from LLM Context`,
+				action: 'unmark',
+			});
+		}
+
+		if (options.length === 0) {
+			showMessage.info('No files to mark or unmark');
+			return;
+		}
+
+		// If there's only one option, execute it directly
+		if (options.length === 1) {
+			const action = options[0].action;
+			if (action === 'mark') {
+				await this.markItems(uris, markedFilesProvider);
+			} else {
+				await this.unmarkItems(uris, markedFilesProvider);
+			}
+			return;
+		}
+
+		// Show quick pick for multiple options
+		const selectedOption = await window.showQuickPick(
+			options.map((opt) => ({ label: opt.label, action: opt.action })),
+			{ placeHolder: 'Choose an action:' },
+		);
+
+		if (selectedOption) {
+			if (selectedOption.action === 'mark') {
+				await this.markItems(uris, markedFilesProvider);
+			} else {
+				await this.unmarkItems(uris, markedFilesProvider);
+			}
 		}
 	},
 

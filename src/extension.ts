@@ -69,8 +69,27 @@ export function activate(context: ExtensionContext) {
 				markFile.markItems(selectedUris, markedFilesProvider);
 			},
 		),
+
+		commands.registerCommand(
+			'gpt-context-generator.unmarkFilesFromExplorer',
+			(uri: Uri, uris: Uri[]) => {
+				// If multiple items are selected, use those
+				const selectedUris = uris?.length ? uris : [uri];
+				markFile.unmarkItems(selectedUris, markedFilesProvider);
+			},
+		),
+
+		commands.registerCommand(
+			'gpt-context-generator.smartMarkUnmarkFromExplorer',
+			(uri: Uri, uris: Uri[]) => {
+				// If multiple items are selected, use those
+				const selectedUris = uris?.length ? uris : [uri];
+				markFile.smartMarkUnmark(selectedUris, markedFilesProvider);
+			},
+		),
 		markedFilesProvider,
 	];
+
 
 	// Add all disposables to subscriptions
 	context.subscriptions.push(...disposables);

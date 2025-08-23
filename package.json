@@ -65,6 +65,14 @@
 			{
 				"command": "gpt-context-generator.markFilesFromExplorer",
 				"title": "Rodeo: Mark for LLM Context"
+			},
+			{
+				"command": "gpt-context-generator.unmarkFilesFromExplorer",
+				"title": "Rodeo: Unmark from LLM Context"
+			},
+			{
+				"command": "gpt-context-generator.smartMarkUnmarkFromExplorer",
+				"title": "Rodeo: Mark/Unmark for LLM Context"
 			}
 		],
 		"configuration": {
@@ -251,7 +259,7 @@
 			],
 			"explorer/context": [
 				{
-					"command": "gpt-context-generator.markFilesFromExplorer",
+					"command": "gpt-context-generator.smartMarkUnmarkFromExplorer",
 					"when": "explorerResourceIsFolder || resourceScheme == file",
 					"group": "1_debug@1"
 				}

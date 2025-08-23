@@ -50,9 +50,11 @@ const vscode = {
 			onDidDelete: jest.fn(() => ({ dispose: jest.fn() })),
 			dispose: jest.fn(),
 		})),
-		openTextDocument: jest.fn(() => Promise.resolve({
-			uri: { fsPath: '/mock/document.md' },
-		})),
+		openTextDocument: jest.fn(() =>
+			Promise.resolve({
+				uri: { fsPath: '/mock/document.md' },
+			}),
+		),
 	},
 	commands: {
 		registerCommand: jest.fn(),

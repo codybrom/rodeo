@@ -3,7 +3,10 @@
 // Mock vscode before importing modules that use it
 jest.mock('vscode', () => ({
 	TreeItem: class TreeItem {
-		constructor(public label: string, public collapsibleState?: number) {}
+		constructor(
+			public label: string,
+			public collapsibleState?: number,
+		) {}
 	},
 	TreeItemCollapsibleState: {
 		None: 0,
@@ -19,7 +22,10 @@ jest.mock('vscode', () => ({
 		dispose = jest.fn();
 	},
 	RelativePattern: class RelativePattern {
-		constructor(public base: any, public pattern: string) {}
+		constructor(
+			public base: any,
+			public pattern: string,
+		) {}
 	},
 	window: {
 		registerFileDecorationProvider: jest.fn(() => ({ dispose: jest.fn() })),
@@ -46,7 +52,11 @@ jest.mock('vscode', () => ({
 		parse: jest.fn((str) => ({ fsPath: str, scheme: 'file' })),
 	},
 	FileDecoration: class FileDecoration {
-		constructor(public badge?: string, public tooltip?: string, public color?: any) {}
+		constructor(
+			public badge?: string,
+			public tooltip?: string,
+			public color?: any,
+		) {}
 	},
 	Disposable: {
 		from: jest.fn(() => ({ dispose: jest.fn() })),
@@ -61,7 +71,11 @@ jest.mock('../../utils/ignoreUtils', () => ({
 	dispose: jest.fn(),
 }));
 
-import { MarkedFilesProvider, markedFiles, forceIncludedFiles } from '../../providers/markedFilesProvider';
+import {
+	MarkedFilesProvider,
+	markedFiles,
+	forceIncludedFiles,
+} from '../../providers/markedFilesProvider';
 import * as vscode from 'vscode';
 import * as fileUtils from '../../utils/fileUtils';
 
@@ -72,15 +86,17 @@ describe('MarkedFilesProvider', () => {
 		jest.clearAllMocks();
 		markedFiles.clear();
 		forceIncludedFiles.clear();
-		
+
 		// Mock file utils
-		(fileUtils.getBasename as jest.Mock).mockImplementation(path => 
-			path.split('/').pop() || ''
+		(fileUtils.getBasename as jest.Mock).mockImplementation(
+			(path) => path.split('/').pop() || '',
 		);
-		
+
 		// Mock private methods if they exist
 		if (MarkedFilesProvider.prototype['initializeFileWatcher']) {
-			jest.spyOn(MarkedFilesProvider.prototype as any, 'initializeFileWatcher').mockImplementation(() => {});
+			jest
+				.spyOn(MarkedFilesProvider.prototype as any, 'initializeFileWatcher')
+				.mockImplementation(() => {});
 		}
 	});
 
@@ -100,9 +116,9 @@ describe('MarkedFilesProvider', () => {
 		it('should return tree item as-is', () => {
 			provider = new MarkedFilesProvider();
 			const treeItem = new vscode.TreeItem('test.ts');
-			
+
 			const result = provider.getTreeItem(treeItem);
-			
+
 			expect(result).toBe(treeItem);
 		});
 	});
@@ -110,9 +126,9 @@ describe('MarkedFilesProvider', () => {
 	describe('getChildren', () => {
 		it('should return empty array when no files are marked', async () => {
 			provider = new MarkedFilesProvider();
-			
+
 			const children = await provider.getChildren();
-			
+
 			expect(children).toEqual([]);
 		});
 
@@ -120,9 +136,9 @@ describe('MarkedFilesProvider', () => {
 			provider = new MarkedFilesProvider();
 			markedFiles.add('/test/file1.ts');
 			markedFiles.add('/test/file2.ts');
-			
+
 			const children = await provider.getChildren();
-			
+
 			expect(children).toHaveLength(2);
 		});
 
@@ -131,9 +147,9 @@ describe('MarkedFilesProvider', () => {
 			markedFiles.add('/test/z.ts');
 			markedFiles.add('/test/a.ts');
 			markedFiles.add('/test/m.ts');
-			
+
 			const children = await provider.getChildren();
-			
+
 			expect(children).toHaveLength(3);
 			// TreeItems are created, not file paths directly
 			// The implementation doesn't actually sort them alphabetically
@@ -155,9 +171,9 @@ describe('MarkedFilesProvider', () => {
 			provider = new MarkedFilesProvider();
 			const uri = { fsPath: '/test/marked.ts' } as vscode.Uri;
 			markedFiles.add('/test/marked.ts');
-			
+
 			const decoration = provider.provideFileDecoration(uri);
-			
+
 			expect(decoration).toBeDefined();
 			expect(decoration?.badge).toBe('📎');
 			expect(decoration?.tooltip).toContain('Marked for LLM Context');
@@ -168,9 +184,9 @@ describe('MarkedFilesProvider', () => {
 			const uri = { fsPath: '/test/forced.txt' } as vscode.Uri;
 			markedFiles.add('/test/forced.txt');
 			forceIncludedFiles.add('/test/forced.txt');
-			
+
 			const decoration = provider.provideFileDecoration(uri);
-			
+
 			expect(decoration).toBeDefined();
 			expect(decoration?.badge).toBe('📎');
 			expect(decoration?.tooltip).toContain('Marked for LLM Context');
@@ -179,9 +195,9 @@ describe('MarkedFilesProvider', () => {
 		it('should return undefined for non-marked files', () => {
 			provider = new MarkedFilesProvider();
 			const uri = { fsPath: '/test/not-marked.ts' } as vscode.Uri;
-			
+
 			const decoration = provider.provideFileDecoration(uri);
-			
+
 			expect(decoration).toBeUndefined();
 		});
 	});

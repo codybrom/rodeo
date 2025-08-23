@@ -29,7 +29,7 @@ describe('Create Context Command', () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks();
-		
+
 		// Setup mock context generator
 		mockContextGenerator = {
 			handleContextGeneration: jest.fn(),
@@ -43,14 +43,16 @@ describe('Create Context Command', () => {
 			const mockTokenCount = 1000;
 			const mockOutputMethod = 'clipboard';
 
-			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(mockWorkspacePath);
+			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(
+				mockWorkspacePath,
+			);
 			(vscodeUtils.getConfig as jest.Mock).mockReturnValue({
 				outputMethod: mockOutputMethod,
 				outputLanguage: 'markdown',
 				includePackageJson: false,
 				tokenWarningThreshold: 32000,
 			});
-			
+
 			mockContextGenerator.handleContextGeneration.mockResolvedValue({
 				tokenCount: mockTokenCount,
 				outputMethod: mockOutputMethod,
@@ -61,7 +63,7 @@ describe('Create Context Command', () => {
 			expect(vscodeUtils.validateWorkspace).toHaveBeenCalled();
 			expect(createContextGenerator).toHaveBeenCalledWith(
 				mockWorkspacePath,
-				expect.anything()
+				expect.anything(),
 			);
 			expect(mockContextGenerator.handleContextGeneration).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -69,7 +71,7 @@ describe('Create Context Command', () => {
 					includePackageJson: false,
 					outputMethod: mockOutputMethod,
 					outputLanguage: 'markdown',
-				})
+				}),
 			);
 		});
 
@@ -90,14 +92,16 @@ describe('Create Context Command', () => {
 			const mockTokenCount = 50000;
 			const mockOutputMethod = 'clipboard';
 
-			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(mockWorkspacePath);
+			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(
+				mockWorkspacePath,
+			);
 			(vscodeUtils.getConfig as jest.Mock).mockReturnValue({
 				outputMethod: mockOutputMethod,
 				outputLanguage: 'markdown',
 				includePackageJson: false,
 				tokenWarningThreshold: 32000,
 			});
-			
+
 			mockContextGenerator.handleContextGeneration.mockResolvedValue({
 				tokenCount: mockTokenCount,
 				outputMethod: mockOutputMethod,
@@ -106,7 +110,9 @@ describe('Create Context Command', () => {
 			await createContext.forWorkspace();
 
 			expect(vscodeUtils.showMessage.warning).toHaveBeenCalledWith(
-				expect.stringContaining('50000 tokens, which is greater than 32000 tokens')
+				expect.stringContaining(
+					'50000 tokens, which is greater than 32000 tokens',
+				),
 			);
 		});
 
@@ -114,16 +120,18 @@ describe('Create Context Command', () => {
 			const mockWorkspacePath = '/test/workspace';
 			const errorMessage = 'Failed to generate context';
 
-			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(mockWorkspacePath);
+			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(
+				mockWorkspacePath,
+			);
 			(vscodeUtils.getConfig as jest.Mock).mockReturnValue({
 				outputMethod: 'clipboard',
 				outputLanguage: 'markdown',
 				includePackageJson: false,
 				tokenWarningThreshold: 32000,
 			});
-			
+
 			mockContextGenerator.handleContextGeneration.mockRejectedValue(
-				new Error(errorMessage)
+				new Error(errorMessage),
 			);
 
 			await createContext.forWorkspace();
@@ -140,14 +148,16 @@ describe('Create Context Command', () => {
 			const mockTokenCount = 1000;
 			const mockOutputMethod = 'clipboard';
 
-			(vscodeUtils.getActiveFilePath as jest.Mock).mockReturnValue(mockFilePath);
+			(vscodeUtils.getActiveFilePath as jest.Mock).mockReturnValue(
+				mockFilePath,
+			);
 			(vscodeUtils.getConfig as jest.Mock).mockReturnValue({
 				outputMethod: mockOutputMethod,
 				outputLanguage: 'markdown',
 				includePackageJson: false,
 				tokenWarningThreshold: 32000,
 			});
-			
+
 			mockContextGenerator.handleContextGeneration.mockResolvedValue({
 				tokenCount: mockTokenCount,
 				outputMethod: mockOutputMethod,
@@ -160,7 +170,7 @@ describe('Create Context Command', () => {
 				expect.objectContaining({
 					openFilePath: mockFilePath,
 					bypassFileTypeEnforcement: true,
-				})
+				}),
 			);
 		});
 
@@ -181,14 +191,16 @@ describe('Create Context Command', () => {
 			const mockTokenCount = 2000;
 			const mockOutputMethod = 'file';
 
-			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(mockWorkspacePath);
+			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(
+				mockWorkspacePath,
+			);
 			(vscodeUtils.getConfig as jest.Mock).mockReturnValue({
 				outputMethod: mockOutputMethod,
 				outputLanguage: 'markdown',
 				includePackageJson: true,
 				tokenWarningThreshold: 32000,
 			});
-			
+
 			mockContextGenerator.handleContextGeneration.mockResolvedValue({
 				tokenCount: mockTokenCount,
 				outputMethod: mockOutputMethod,
@@ -196,16 +208,18 @@ describe('Create Context Command', () => {
 
 			// Mock markedFiles
 			(markedFiles as Set<string>).clear();
-			mockMarkedFiles.forEach(file => (markedFiles as Set<string>).add(file));
+			mockMarkedFiles.forEach((file) => (markedFiles as Set<string>).add(file));
 
 			await createContext.forMarkedFiles();
 
-			expect(mockContextGenerator.handleContextGeneration).toHaveBeenCalledWith({
-				markedFiles: mockMarkedFiles,
-				includePackageJson: true,
-				outputMethod: mockOutputMethod,
-				outputLanguage: 'markdown',
-			});
+			expect(mockContextGenerator.handleContextGeneration).toHaveBeenCalledWith(
+				{
+					markedFiles: mockMarkedFiles,
+					includePackageJson: true,
+					outputMethod: mockOutputMethod,
+					outputLanguage: 'markdown',
+				},
+			);
 		});
 	});
 });

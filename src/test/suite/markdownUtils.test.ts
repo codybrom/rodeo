@@ -19,7 +19,7 @@ describe('Markdown Utils Test Suite', () => {
 		const fileData: FileData = {
 			path: 'test.js',
 			extension: 'js',
-			content: 'console.log("Hello");'
+			content: 'console.log("Hello");',
 		};
 		const result = formatFileComment(fileData);
 		expect(result).toContain('```JavaScript test.js');
@@ -31,7 +31,7 @@ describe('Markdown Utils Test Suite', () => {
 		const pythonFile: FileData = {
 			path: 'script.py',
 			extension: 'py',
-			content: 'print("Hello")'
+			content: 'print("Hello")',
 		};
 		const result = formatFileComment(pythonFile);
 		expect(result).toContain('```Python script.py');
