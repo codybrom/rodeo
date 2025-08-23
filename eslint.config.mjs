@@ -10,7 +10,7 @@ import stylistic from '@stylistic/eslint-plugin';
 
 export default tseslint.config(
 	{
-		ignores: ['out', 'dist', '**/*.d.ts'],
+		ignores: ['out', 'dist', '**/*.d.ts', 'src/test/__mocks__', '*.config.js', 'builds'],
 	},
 	js.configs.recommended,
 	...tseslint.configs.recommended,

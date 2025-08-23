@@ -24,5 +24,13 @@
 		".dockerignore",
 		".rodeoignore"
 	],
-	"cSpell.enabled": true
+	"cSpell.enabled": true,
+	"testing.automaticallyOpenPeekView": "failureInVisibleDocument",
+	"testing.defaultGutterClickAction": "run",
+	"testing.followRunningTest": true,
+	"testing.showAllMessages": false,
+	"jest.runMode": {
+		"coverage": true,
+		"type": "watch",
+	}
 }

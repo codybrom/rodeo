@@ -16,3 +16,4 @@ builds/
 
 # Ignore custom "ignore" directory (if present)
 ignore/
+coverage/
