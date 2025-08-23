@@ -10,6 +10,7 @@ jest.mock('../../utils/vscodeUtils', () => ({
 		warning: jest.fn(),
 	},
 	getActiveFilePath: jest.fn(),
+	getAllOpenFilePaths: jest.fn(),
 }));
 jest.mock('../../generators/contextGenerator', () => ({
 	createContextGenerator: jest.fn(),
@@ -219,6 +220,143 @@ describe('Create Context Command', () => {
 					outputMethod: mockOutputMethod,
 					outputLanguage: 'markdown',
 				},
+			);
+		});
+	});
+
+	describe('forAllOpenFiles', () => {
+		it('should generate context for all open files', async () => {
+			const mockWorkspacePath = '/test/workspace';
+			const mockOpenFiles = ['/test/file1.ts', '/test/file2.js'];
+			const mockTokenCount = 2000;
+			const mockOutputMethod = 'clipboard';
+
+			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(
+				mockWorkspacePath,
+			);
+			(vscodeUtils.getAllOpenFilePaths as jest.Mock).mockReturnValue(
+				mockOpenFiles,
+			);
+			(vscodeUtils.getConfig as jest.Mock).mockReturnValue({
+				outputMethod: mockOutputMethod,
+				outputLanguage: 'markdown',
+				includePackageJson: false,
+				tokenWarningThreshold: 32000,
+			});
+
+			mockContextGenerator.handleContextGeneration.mockResolvedValue({
+				tokenCount: mockTokenCount,
+				outputMethod: mockOutputMethod,
+			});
+
+			await createContext.forAllOpenFiles();
+
+			expect(vscodeUtils.getAllOpenFilePaths).toHaveBeenCalled();
+			expect(mockContextGenerator.handleContextGeneration).toHaveBeenCalledWith(
+				expect.objectContaining({
+					markedFiles: mockOpenFiles,
+					bypassFileTypeEnforcement: true,
+				}),
+			);
+			expect(vscodeUtils.showMessage.info).toHaveBeenCalledWith(
+				`LLM-ready context copied to clipboard. (${mockTokenCount} tokens)`,
+			);
+		});
+
+		it('should show warning when no workspace is open', async () => {
+			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(null);
+
+			await createContext.forAllOpenFiles();
+
+			expect(vscodeUtils.showMessage.warning).toHaveBeenCalledWith(
+				'This feature requires a workspace to be open.',
+			);
+		});
+
+		it('should show warning when no files are open', async () => {
+			const mockWorkspacePath = '/test/workspace';
+
+			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(
+				mockWorkspacePath,
+			);
+			(vscodeUtils.getAllOpenFilePaths as jest.Mock).mockReturnValue([]);
+
+			await createContext.forAllOpenFiles();
+
+			expect(vscodeUtils.showMessage.warning).toHaveBeenCalledWith(
+				'No files are currently open.',
+			);
+		});
+	});
+
+	describe('forAllOpenFilesWithImports', () => {
+		it('should generate context for all open files with imports', async () => {
+			const mockWorkspacePath = '/test/workspace';
+			const mockOpenFiles = ['/test/file1.ts', '/test/file2.js'];
+			const mockTokenCount = 3000;
+			const mockOutputMethod = 'clipboard';
+
+			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(
+				mockWorkspacePath,
+			);
+			(vscodeUtils.getAllOpenFilePaths as jest.Mock).mockReturnValue(
+				mockOpenFiles,
+			);
+			(vscodeUtils.getConfig as jest.Mock).mockReturnValue({
+				outputMethod: mockOutputMethod,
+				outputLanguage: 'markdown',
+				includePackageJson: false,
+				tokenWarningThreshold: 32000,
+			});
+
+			// Add the new method mock to the context generator
+			mockContextGenerator.handleContextGenerationForOpenFilesWithImports =
+				jest.fn();
+			mockContextGenerator.handleContextGenerationForOpenFilesWithImports.mockResolvedValue(
+				{
+					tokenCount: mockTokenCount,
+					outputMethod: mockOutputMethod,
+				},
+			);
+
+			await createContext.forAllOpenFilesWithImports();
+
+			expect(vscodeUtils.getAllOpenFilePaths).toHaveBeenCalled();
+			expect(
+				mockContextGenerator.handleContextGenerationForOpenFilesWithImports,
+			).toHaveBeenCalledWith(
+				mockOpenFiles,
+				expect.objectContaining({
+					bypassFileTypeEnforcement: true,
+				}),
+			);
+			expect(vscodeUtils.showMessage.info).toHaveBeenCalledWith(
+				`LLM-ready context copied to clipboard. (${mockTokenCount} tokens)`,
+			);
+		});
+
+		it('should show warning when no workspace is open', async () => {
+			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(null);
+
+			await createContext.forAllOpenFilesWithImports();
+
+			expect(vscodeUtils.showMessage.warning).toHaveBeenCalledWith(
+				'This feature requires a workspace to be open.',
+			);
+		});
+
+		it('should show warning when no files are open', async () => {
+			const mockWorkspacePath = '/test/workspace';
+
+			(vscodeUtils.validateWorkspace as jest.Mock).mockReturnValue(
+				mockWorkspacePath,
+			);
+			(vscodeUtils.getAllOpenFilePaths as jest.Mock).mockReturnValue([]);
+
+			await createContext.forAllOpenFilesWithImports();
+
+			expect(vscodeUtils.showMessage.warning).toHaveBeenCalledWith(
+				'No files are currently open.',
 			);
 		});
 	});

@@ -1,7 +1,11 @@
 import { createContextGenerator } from '../generators/contextGenerator';
-import { markedFiles, forceIncludedFiles } from '../providers/markedFilesProvider';
+import {
+	markedFiles,
+	forceIncludedFiles,
+} from '../providers/markedFilesProvider';
 import {
 	getActiveFilePath,
+	getAllOpenFilePaths,
 	getConfig,
 	showMessage,
 	validateWorkspace,
@@ -17,7 +21,10 @@ export const createContext = {
 		},
 	) {
 		try {
-			const contextGenerator = createContextGenerator(workspacePath, forceIncludedFiles);
+			const contextGenerator = createContextGenerator(
+				workspacePath,
+				forceIncludedFiles,
+			);
 
 			const config = getConfig();
 			const { tokenCount, outputMethod } =
@@ -93,5 +100,68 @@ export const createContext = {
 		await this.generateContext(workspacePath, {
 			markedFiles: Array.from(markedFiles),
 		});
+	},
+
+	async forAllOpenFiles() {
+		const workspacePath = validateWorkspace();
+		if (!workspacePath) {
+			showMessage.warning('This feature requires a workspace to be open.');
+			return;
+		}
+
+		const openFiles = getAllOpenFilePaths();
+		if (openFiles.length === 0) {
+			showMessage.warning('No files are currently open.');
+			return;
+		}
+
+		await this.generateContext(workspacePath, {
+			markedFiles: openFiles,
+			bypassFileTypeEnforcement: true,
+		});
+	},
+
+	async forAllOpenFilesWithImports() {
+		const workspacePath = validateWorkspace();
+		if (!workspacePath) {
+			showMessage.warning('This feature requires a workspace to be open.');
+			return;
+		}
+
+		const openFiles = getAllOpenFilePaths();
+		if (openFiles.length === 0) {
+			showMessage.warning('No files are currently open.');
+			return;
+		}
+
+		// Create a custom context generation that includes all open files and their imports
+		const contextGenerator = createContextGenerator(
+			workspacePath,
+			forceIncludedFiles,
+		);
+
+		const config = getConfig();
+		const { tokenCount, outputMethod } =
+			await contextGenerator.handleContextGenerationForOpenFilesWithImports(
+				openFiles,
+				{
+					includePackageJson: config.includePackageJson,
+					outputMethod: config.outputMethod,
+					outputLanguage: config.outputLanguage,
+					bypassFileTypeEnforcement: true,
+				},
+			);
+
+		if (tokenCount === 0) {
+			return;
+		}
+
+		const threshold = config.tokenWarningThreshold;
+		const message = `LLM-ready context ${outputMethod === 'clipboard' ? 'copied to clipboard' : 'opened in new window'}. (${tokenCount} tokens${tokenCount > threshold ? `, which is greater than ${threshold} tokens` : ''})`;
+		if (tokenCount > threshold) {
+			showMessage.warning(message);
+		} else {
+			showMessage.info(message);
+		}
 	},
 };

@@ -87,9 +87,18 @@ export function activate(context: ExtensionContext) {
 				markFile.smartMarkUnmark(selectedUris, markedFilesProvider);
 			},
 		),
+
+		commands.registerCommand(
+			'gpt-context-generator.createGPTFriendlyContextForAllOpenFiles',
+			() => createContext.forAllOpenFiles(),
+		),
+
+		commands.registerCommand(
+			'gpt-context-generator.createGPTFriendlyContextForAllOpenFilesWithImports',
+			() => createContext.forAllOpenFilesWithImports(),
+		),
 		markedFilesProvider,
 	];
-
 
 	// Add all disposables to subscriptions
 	context.subscriptions.push(...disposables);

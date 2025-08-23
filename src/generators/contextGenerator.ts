@@ -69,6 +69,42 @@ export class ContextGenerator {
 		}
 	}
 
+	async handleContextGenerationForOpenFilesWithImports(
+		openFiles: string[],
+		options: {
+			includePackageJson?: boolean;
+			outputMethod?: string;
+			outputLanguage?: string;
+			bypassFileTypeEnforcement?: boolean;
+		},
+	): Promise<{ tokenCount: number; outputMethod: string }> {
+		try {
+			const outputMethod = options.outputMethod || 'clipboard';
+			const outputLanguage = options.outputLanguage || 'plaintext';
+
+			const gptContext = await this.generateContextForOpenFilesWithImports(
+				openFiles,
+				options,
+			);
+
+			if (gptContext.length === 0) {
+				showMessage.warning('No files were found to include in the context.');
+				return { tokenCount: 0, outputMethod };
+			}
+
+			await this.handleOutput(gptContext, outputMethod, outputLanguage);
+
+			const tokenCount = await estimateTokenCount(gptContext);
+			return { tokenCount, outputMethod };
+		} catch (error) {
+			console.error(
+				'Error in handleContextGenerationForOpenFilesWithImports:',
+				error,
+			);
+			throw error;
+		}
+	}
+
 	private async handleOutput(
 		content: string,
 		outputMethod: string,
@@ -139,6 +175,75 @@ export class ContextGenerator {
 			return contextParts.join('\n');
 		} catch (error) {
 			console.error('Error during context generation:', error);
+			throw error;
+		}
+	}
+
+	public async generateContextForOpenFilesWithImports(
+		openFiles: string[],
+		{
+			includePackageJson = false,
+			bypassFileTypeEnforcement = false,
+		}: {
+			includePackageJson?: boolean;
+			bypassFileTypeEnforcement?: boolean;
+		},
+	): Promise<string> {
+		this.skippedFiles = []; // Clear skippedFiles before each context generation
+
+		console.log(
+			'\n=== Starting context generation for open files with imports ===',
+		);
+		const contextParts: string[] = [];
+		const processedFiles = new Set<string>();
+
+		try {
+			// Process each open file and their imports
+			for (const filePath of openFiles) {
+				console.log(`Processing open file: ${filePath}`);
+				const relPath = getRelativePath(this.workspacePath, filePath);
+
+				// Add the open file itself
+				if (!processedFiles.has(filePath)) {
+					await this.handleSingleFile(filePath, relPath, contextParts);
+					processedFiles.add(filePath);
+				}
+
+				// Process its imports
+				try {
+					const content = readFileContent(filePath);
+					await this.processImportsForFile(
+						filePath,
+						content,
+						contextParts,
+						processedFiles,
+						bypassFileTypeEnforcement,
+					);
+				} catch (error) {
+					console.error(`Error processing imports for ${filePath}:`, error);
+				}
+			}
+
+			if (includePackageJson) {
+				console.log('Adding package.json');
+				await this.addPackageJson(contextParts);
+			}
+
+			console.log(
+				`\nContext generation complete. Files processed: ${contextParts.length}`,
+			);
+
+			await this.notifySkippedFilesAndLasso(this.skippedFiles, {
+				markedFiles: openFiles,
+				includePackageJson,
+			});
+
+			return contextParts.join('\n');
+		} catch (error) {
+			console.error(
+				'Error during context generation for open files with imports:',
+				error,
+			);
 			throw error;
 		}
 	}
@@ -216,6 +321,81 @@ export class ContextGenerator {
 					path: resolvedPath,
 					reason: 'Unsupported file type',
 				});
+			}
+		}
+	}
+
+	private async processImportsForFile(
+		filePath: string,
+		content: string,
+		contextParts: string[],
+		processedFiles: Set<string>,
+		bypassFileTypeEnforcement = false,
+	): Promise<void> {
+		const imports = extractImports(content);
+		for (const importPath of imports) {
+			const resolvedPath = resolvePath(getDirname(filePath), importPath);
+
+			// Skip if already processed
+			if (processedFiles.has(resolvedPath)) {
+				continue;
+			}
+
+			const relPath = getRelativePath(this.workspacePath, resolvedPath);
+
+			// For imports, we do respect ignore patterns
+			if (isIgnored(relPath)) {
+				this.skippedFiles.push({ path: resolvedPath, reason: 'Ignored' });
+				continue;
+			}
+
+			const fileExtension = getExtension(resolvedPath);
+			if (!fileExtension) {
+				await this.tryProcessImportWithExtensionsForFile(
+					resolvedPath,
+					contextParts,
+					processedFiles,
+				);
+			} else if (
+				(bypassFileTypeEnforcement ||
+					this.detectedFileExtensions.includes(fileExtension)) &&
+				fileExists(resolvedPath)
+			) {
+				await this.processFile(resolvedPath, relPath, contextParts);
+				processedFiles.add(resolvedPath);
+			} else if (!fileExists(resolvedPath)) {
+				this.skippedFiles.push({
+					path: resolvedPath,
+					reason: 'File not found',
+				});
+			} else {
+				this.skippedFiles.push({
+					path: resolvedPath,
+					reason: 'Unsupported file type',
+				});
+			}
+		}
+	}
+
+	private async tryProcessImportWithExtensionsForFile(
+		basePath: string,
+		contextParts: string[],
+		processedFiles: Set<string>,
+	): Promise<void> {
+		for (const ext of this.detectedFileExtensions) {
+			const fullPath = `${basePath}.${ext}`;
+
+			// Skip if already processed
+			if (processedFiles.has(fullPath)) {
+				continue;
+			}
+
+			const relPath = getRelativePath(this.workspacePath, fullPath);
+
+			if (fileExists(fullPath)) {
+				await this.processFile(fullPath, relPath, contextParts);
+				processedFiles.add(fullPath);
+				break;
 			}
 		}
 	}

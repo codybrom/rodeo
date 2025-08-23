@@ -73,6 +73,14 @@
 			{
 				"command": "gpt-context-generator.smartMarkUnmarkFromExplorer",
 				"title": "Rodeo: Mark/Unmark for LLM Context"
+			},
+			{
+				"command": "gpt-context-generator.createGPTFriendlyContextForAllOpenFiles",
+				"title": "Rodeo: Generate LLM Context (All Open Files)"
+			},
+			{
+				"command": "gpt-context-generator.createGPTFriendlyContextForAllOpenFilesWithImports",
+				"title": "Rodeo: Generate LLM Context (All Open Files + Imports)"
 			}
 		],
 		"configuration": {

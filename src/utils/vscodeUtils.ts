@@ -8,6 +8,48 @@ export const getActiveFilePath = (): string | null => {
 	return window.activeTextEditor.document.uri.fsPath;
 };
 
+export const getAllOpenFilePaths = (): string[] => {
+	const paths = new Set<string>();
+
+	workspace.textDocuments.forEach((doc) => {
+		let filePath: string | null = null;
+
+		if (doc.uri.scheme === 'file' && !doc.isUntitled) {
+			// Regular file on disk
+			filePath = doc.uri.fsPath;
+		} else if (doc.uri.scheme === 'git') {
+			// Git diff/working tree tab - extract the actual file path
+			// Git URIs typically look like: git:/path/to/repo.git/file.js?ref
+			const match = doc.uri.path.match(/^\/.*\.git\/(.+)$/);
+			if (match) {
+				// Reconstruct the actual file path
+				const workspaceFolder = workspace.workspaceFolders?.[0];
+				if (workspaceFolder) {
+					filePath = `${workspaceFolder.uri.fsPath}/${match[1]}`;
+				}
+			}
+		} else if (doc.uri.query && doc.uri.query.includes('git')) {
+			// Other Git-related tabs that might have file info in query
+			try {
+				const queryParams = new URLSearchParams(doc.uri.query);
+				const originalPath = queryParams.get('path');
+				if (originalPath) {
+					filePath = originalPath;
+				}
+			} catch {
+				// Ignore query parsing errors
+			}
+		}
+
+		// Add valid file paths to set (deduplicates automatically)
+		if (filePath && filePath !== '' && !filePath.includes('scm0/input')) {
+			paths.add(filePath);
+		}
+	});
+
+	return Array.from(paths);
+};
+
 export const getConfig = () => {
 	const config = workspace.getConfiguration('gpt-context-generator');
 	return {
