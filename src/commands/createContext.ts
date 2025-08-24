@@ -33,6 +33,8 @@ export const createContext = {
 					includePackageJson: config.includePackageJson,
 					outputMethod: config.outputMethod,
 					outputLanguage: config.outputLanguage,
+					markdownFileHandling: config.markdownFileHandling,
+					filePathFormat: config.filePathFormat,
 				});
 
 			if (tokenCount === 0) {
@@ -149,6 +151,8 @@ export const createContext = {
 					outputMethod: config.outputMethod,
 					outputLanguage: config.outputLanguage,
 					bypassFileTypeEnforcement: true,
+					markdownFileHandling: config.markdownFileHandling,
+					filePathFormat: config.filePathFormat,
 				},
 			);
 

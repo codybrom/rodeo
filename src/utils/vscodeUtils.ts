@@ -60,6 +60,9 @@ export const getConfig = () => {
 		detectedFileExtensions: config.get('detectedFileExtensions') as string[],
 		ignoreFiles: config.get('ignoreFiles') as string[],
 		enforceFileTypes: (config.get('enforceFileTypes') as boolean) ?? true,
+		markdownFileHandling:
+			(config.get('markdownFileHandling') as string) ?? 'raw',
+		filePathFormat: (config.get('filePathFormat') as string) ?? 'inline',
 	};
 };
 

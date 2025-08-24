@@ -76,6 +76,8 @@ export class ContextGenerator {
 			outputMethod?: string;
 			outputLanguage?: string;
 			bypassFileTypeEnforcement?: boolean;
+			markdownFileHandling?: string;
+			filePathFormat?: string;
 		},
 	): Promise<{ tokenCount: number; outputMethod: string }> {
 		try {
@@ -137,6 +139,8 @@ export class ContextGenerator {
 		markedFiles,
 		includePackageJson = false,
 		bypassFileTypeEnforcement = false,
+		markdownFileHandling,
+		filePathFormat,
 	}: ContextOptions): Promise<string> {
 		this.skippedFiles = []; // Clear skippedFiles before each context generation to prevent duplicate notifications
 
@@ -150,18 +154,34 @@ export class ContextGenerator {
 					markedFiles,
 					contextParts,
 					bypassFileTypeEnforcement,
+					markdownFileHandling,
+					filePathFormat,
 				);
 			} else if (openFilePath) {
 				console.log('Processing open file');
-				await this.processOpenFile(openFilePath, contextParts);
+				await this.processOpenFile(
+					openFilePath,
+					contextParts,
+					markdownFileHandling,
+					filePathFormat,
+				);
 			} else {
 				console.log('Processing entire workspace');
-				await this.processDirectory(this.workspacePath, contextParts);
+				await this.processDirectory(
+					this.workspacePath,
+					contextParts,
+					markdownFileHandling,
+					filePathFormat,
+				);
 			}
 
 			if (includePackageJson) {
 				console.log('Adding package.json');
-				await this.addPackageJson(contextParts);
+				await this.addPackageJson(
+					contextParts,
+					markdownFileHandling,
+					filePathFormat,
+				);
 			}
 
 			console.log(
@@ -184,9 +204,13 @@ export class ContextGenerator {
 		{
 			includePackageJson = false,
 			bypassFileTypeEnforcement = false,
+			markdownFileHandling,
+			filePathFormat,
 		}: {
 			includePackageJson?: boolean;
 			bypassFileTypeEnforcement?: boolean;
+			markdownFileHandling?: string;
+			filePathFormat?: string;
 		},
 	): Promise<string> {
 		this.skippedFiles = []; // Clear skippedFiles before each context generation
@@ -205,7 +229,14 @@ export class ContextGenerator {
 
 				// Add the open file itself
 				if (!processedFiles.has(filePath)) {
-					await this.handleSingleFile(filePath, relPath, contextParts);
+					await this.handleSingleFile(
+						filePath,
+						relPath,
+						contextParts,
+						bypassFileTypeEnforcement,
+						markdownFileHandling,
+						filePathFormat,
+					);
 					processedFiles.add(filePath);
 				}
 
@@ -218,6 +249,8 @@ export class ContextGenerator {
 						contextParts,
 						processedFiles,
 						bypassFileTypeEnforcement,
+						markdownFileHandling,
+						filePathFormat,
 					);
 				} catch (error) {
 					console.error(`Error processing imports for ${filePath}:`, error);
@@ -226,7 +259,11 @@ export class ContextGenerator {
 
 			if (includePackageJson) {
 				console.log('Adding package.json');
-				await this.addPackageJson(contextParts);
+				await this.addPackageJson(
+					contextParts,
+					markdownFileHandling,
+					filePathFormat,
+				);
 			}
 
 			console.log(
@@ -261,6 +298,8 @@ export class ContextGenerator {
 		relPath: string,
 		contextParts: string[],
 		bypassFileTypeEnforcement = false,
+		markdownFileHandling?: string,
+		filePathFormat?: string,
 	): Promise<void> {
 		if (
 			!bypassFileTypeEnforcement &&
@@ -277,6 +316,8 @@ export class ContextGenerator {
 				relPath,
 				contextParts,
 				bypassFileTypeEnforcement,
+				markdownFileHandling,
+				filePathFormat,
 			);
 		}
 	}
@@ -284,18 +325,35 @@ export class ContextGenerator {
 	private async processOpenFile(
 		filePath: string,
 		contextParts: string[],
+		markdownFileHandling?: string,
+		filePathFormat?: string,
 	): Promise<void> {
 		const relPath = getRelativePath(this.workspacePath, filePath);
-		await this.handleSingleFile(filePath, relPath, contextParts);
+		await this.handleSingleFile(
+			filePath,
+			relPath,
+			contextParts,
+			true,
+			markdownFileHandling,
+			filePathFormat,
+		);
 
 		const content = readFileContent(filePath);
-		await this.processImports(filePath, content, contextParts);
+		await this.processImports(
+			filePath,
+			content,
+			contextParts,
+			markdownFileHandling,
+			filePathFormat,
+		);
 	}
 
 	private async processImports(
 		filePath: string,
 		content: string,
 		contextParts: string[],
+		markdownFileHandling?: string,
+		filePathFormat?: string,
 	): Promise<void> {
 		const imports = extractImports(content);
 		for (const importPath of imports) {
@@ -310,12 +368,24 @@ export class ContextGenerator {
 
 			const fileExtension = getExtension(resolvedPath);
 			if (!fileExtension) {
-				await this.tryProcessImportWithExtensions(resolvedPath, contextParts);
+				await this.tryProcessImportWithExtensions(
+					resolvedPath,
+					contextParts,
+					markdownFileHandling,
+					filePathFormat,
+				);
 			} else if (
 				this.detectedFileExtensions.includes(fileExtension) &&
 				fileExists(resolvedPath)
 			) {
-				await this.processFile(resolvedPath, relPath, contextParts);
+				await this.processFile(
+					resolvedPath,
+					relPath,
+					contextParts,
+					true,
+					markdownFileHandling,
+					filePathFormat,
+				);
 			} else {
 				this.skippedFiles.push({
 					path: resolvedPath,
@@ -331,6 +401,8 @@ export class ContextGenerator {
 		contextParts: string[],
 		processedFiles: Set<string>,
 		bypassFileTypeEnforcement = false,
+		markdownFileHandling?: string,
+		filePathFormat?: string,
 	): Promise<void> {
 		const imports = extractImports(content);
 		for (const importPath of imports) {
@@ -355,13 +427,22 @@ export class ContextGenerator {
 					resolvedPath,
 					contextParts,
 					processedFiles,
+					markdownFileHandling,
+					filePathFormat,
 				);
 			} else if (
 				(bypassFileTypeEnforcement ||
 					this.detectedFileExtensions.includes(fileExtension)) &&
 				fileExists(resolvedPath)
 			) {
-				await this.processFile(resolvedPath, relPath, contextParts);
+				await this.processFile(
+					resolvedPath,
+					relPath,
+					contextParts,
+					true,
+					markdownFileHandling,
+					filePathFormat,
+				);
 				processedFiles.add(resolvedPath);
 			} else if (!fileExists(resolvedPath)) {
 				this.skippedFiles.push({
@@ -381,6 +462,8 @@ export class ContextGenerator {
 		basePath: string,
 		contextParts: string[],
 		processedFiles: Set<string>,
+		markdownFileHandling?: string,
+		filePathFormat?: string,
 	): Promise<void> {
 		for (const ext of this.detectedFileExtensions) {
 			const fullPath = `${basePath}.${ext}`;
@@ -393,7 +476,14 @@ export class ContextGenerator {
 			const relPath = getRelativePath(this.workspacePath, fullPath);
 
 			if (fileExists(fullPath)) {
-				await this.processFile(fullPath, relPath, contextParts);
+				await this.processFile(
+					fullPath,
+					relPath,
+					contextParts,
+					true,
+					markdownFileHandling,
+					filePathFormat,
+				);
 				processedFiles.add(fullPath);
 				break;
 			}
@@ -403,13 +493,22 @@ export class ContextGenerator {
 	private async tryProcessImportWithExtensions(
 		basePath: string,
 		contextParts: string[],
+		markdownFileHandling?: string,
+		filePathFormat?: string,
 	): Promise<void> {
 		for (const ext of this.detectedFileExtensions) {
 			const fullPath = `${basePath}.${ext}`;
 			const relPath = getRelativePath(this.workspacePath, fullPath);
 
 			if (fileExists(fullPath)) {
-				await this.processFile(fullPath, relPath, contextParts);
+				await this.processFile(
+					fullPath,
+					relPath,
+					contextParts,
+					true,
+					markdownFileHandling,
+					filePathFormat,
+				);
 				break;
 			}
 		}
@@ -418,6 +517,8 @@ export class ContextGenerator {
 	private async processDirectory(
 		dir: string,
 		contextParts: string[],
+		markdownFileHandling?: string,
+		filePathFormat?: string,
 	): Promise<void> {
 		if (!dir) {
 			console.log('Empty directory path provided');
@@ -463,7 +564,12 @@ export class ContextGenerator {
 
 					if (isDirectory(filePath)) {
 						console.log('Processing subdirectory:', fileRelPath);
-						await this.processDirectory(filePath, contextParts);
+						await this.processDirectory(
+							filePath,
+							contextParts,
+							markdownFileHandling,
+							filePathFormat,
+						);
 						continue;
 					}
 
@@ -482,7 +588,14 @@ export class ContextGenerator {
 
 					// Process the file
 					console.log('Processing file:', fileRelPath);
-					await this.processFile(filePath, fileRelPath, contextParts);
+					await this.processFile(
+						filePath,
+						fileRelPath,
+						contextParts,
+						false,
+						markdownFileHandling,
+						filePathFormat,
+					);
 					console.log('Added to context:', fileRelPath);
 				} catch (error) {
 					console.error(`Error processing ${file}:`, error);
@@ -497,6 +610,8 @@ export class ContextGenerator {
 		files: string[],
 		contextParts: string[],
 		bypassFileTypeEnforcement = false,
+		markdownFileHandling?: string,
+		filePathFormat?: string,
 	): Promise<void> {
 		// Special case for single marked file
 		if (files.length === 1) {
@@ -507,6 +622,8 @@ export class ContextGenerator {
 				relPath,
 				contextParts,
 				bypassFileTypeEnforcement,
+				markdownFileHandling,
+				filePathFormat,
 			);
 			return;
 		}
@@ -520,6 +637,8 @@ export class ContextGenerator {
 					relPath,
 					contextParts,
 					bypassFileTypeEnforcement,
+					markdownFileHandling,
+					filePathFormat,
 				);
 			}
 		}
@@ -530,6 +649,8 @@ export class ContextGenerator {
 		relPath: string,
 		contextParts: string[],
 		bypassFileTypeEnforcement = false,
+		markdownFileHandling?: string,
+		filePathFormat?: string,
 	): Promise<void> {
 		const fileExtension = getExtension(filePath);
 		try {
@@ -540,7 +661,9 @@ export class ContextGenerator {
 				this.detectedFileExtensions.includes(fileExtension)
 			) {
 				const fileData = this.createFileData(filePath, relPath);
-				contextParts.push(`${formatFileComment(fileData)}\n\n`);
+				contextParts.push(
+					`${formatFileComment(fileData, { markdownFileHandling, filePathFormat })}\n\n`,
+				);
 				console.log('Successfully added to context:', relPath);
 			} else {
 				this.skippedFiles.push({
@@ -553,7 +676,11 @@ export class ContextGenerator {
 		}
 	}
 
-	private async addPackageJson(contextParts: string[]): Promise<void> {
+	private async addPackageJson(
+		contextParts: string[],
+		markdownFileHandling?: string,
+		filePathFormat?: string,
+	): Promise<void> {
 		const content = readPackageJson(this.workspacePath);
 		if (content) {
 			const fileData: FileData = {
@@ -561,7 +688,9 @@ export class ContextGenerator {
 				extension: 'json',
 				content,
 			};
-			contextParts.push(`${formatFileComment(fileData)}\n\n`);
+			contextParts.push(
+				`${formatFileComment(fileData, { markdownFileHandling, filePathFormat })}\n\n`,
+			);
 		}
 	}
 

@@ -231,6 +231,27 @@
 					"default": false,
 					"description": "Always include package.json as part of the context",
 					"order": 7
+				},
+				"gpt-context-generator.markdownFileHandling": {
+					"type": "string",
+					"enum": [
+						"raw",
+						"codeblock"
+					],
+					"default": "raw",
+					"description": "How to handle markdown files: 'raw' includes them as-is (default), 'codeblock' wraps them in code blocks like other files",
+					"order": 8
+				},
+				"gpt-context-generator.filePathFormat": {
+					"type": "string",
+					"enum": [
+						"inline",
+						"comment",
+						"none"
+					],
+					"default": "inline",
+					"description": "Where to display file paths: 'inline' (in code block header), 'comment' (as separate comment), 'none' (no file path)",
+					"order": 9
 				}
 			}
 		},

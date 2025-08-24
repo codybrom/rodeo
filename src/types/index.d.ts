@@ -11,6 +11,8 @@ interface ContextOptions {
 	outputMethod?: string;
 	outputLanguage?: string;
 	bypassFileTypeEnforcement?: boolean;
+	markdownFileHandling?: string;
+	filePathFormat?: string;
 }
 
 interface IgnoreConfig {
