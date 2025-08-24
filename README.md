@@ -4,15 +4,9 @@
   <p><strong>🤠 Wrangle your code context for AI collaboration</strong></p>
   <p><em>Formerly "GPT Context Generator" - Same powerful features, new name!</em></p>
   <p>
-    <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator">
-      <img src="https://badgen.net/vs-marketplace/v/codybrom.gpt-context-generator" alt="VS Marketplace Version">
-    </a>&nbsp;
-    <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator">
-      <img src="https://badgen.net/vs-marketplace/i/codybrom.gpt-context-generator" alt="VS Marketplace Installs">
-    </a>&nbsp;
-    <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator">
-      <img src="https://badgen.net/vs-marketplace/d/codybrom.gpt-context-generator" alt="VS Marketplace Rating">
-    </a>
+    <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator"><img src="https://badgen.net/vs-marketplace/v/codybrom.gpt-context-generator" alt="VS Marketplace Version"></a>
+    <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator"><img src="https://badgen.net/vs-marketplace/i/codybrom.gpt-context-generator" alt="VS Marketplace Installs"></a>
+    <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator"><img src="https://badgen.net/vs-marketplace/d/codybrom.gpt-context-generator" alt="VS Marketplace Rating"></a>
   </p>
 </div>
 
