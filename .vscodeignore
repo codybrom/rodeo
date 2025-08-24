@@ -4,6 +4,7 @@
 
 # Ignore source code files and directories
 src/**
+scripts/**
 **/*.ts
 
 # Ignore configuration files
@@ -13,14 +14,27 @@ src/**
 eslint*
 esbuild*
 .rodeoignore
+.claude/
 .github
+.env
+.env.*
+*.env
 
 # Ignore source map files
 **/*.map
 
-# Ignore dependencies
+# Ignore dependencies and build artifacts
 node_modules/**
 builds/**
+dist/**
+coverage/**
+*.vsix
+
+# Ignore test files and directories
+test/**
+**/*.test.*
+**/*.spec.*
+jest.config.js
 
 # Do not ignore the following files
 !out/tiktoken_bg.wasm

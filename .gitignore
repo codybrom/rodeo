@@ -9,10 +9,13 @@ yarn-error.log
 .yarn/
 .vscode-test/
 
+# Ignore .env files
+.env
+
+
 # Ignore output directories
 out/
 dist/
-builds/
 
 # Ignore custom "ignore" directory (if present)
 ignore/
