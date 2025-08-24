@@ -6,10 +6,10 @@
   <p>
     <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator">
       <img src="https://badgen.net/vs-marketplace/v/codybrom.gpt-context-generator" alt="VS Marketplace Version">
-    </a>
+    </a>&nbsp;
     <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator">
       <img src="https://badgen.net/vs-marketplace/i/codybrom.gpt-context-generator" alt="VS Marketplace Installs">
-    </a>
+    </a>&nbsp;
     <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator">
       <img src="https://badgen.net/vs-marketplace/d/codybrom.gpt-context-generator" alt="VS Marketplace Rating">
     </a>
