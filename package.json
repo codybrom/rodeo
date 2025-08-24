@@ -1,9 +1,9 @@
 {
-	"displayName": "Rodeo – LLM Context Generator",
+	"displayName": "Rodeo - LLM Context Generator",
 	"publisher": "codybrom",
 	"name": "gpt-context-generator",
 	"description": "Generate LLM-ready Markdown code context from files and workspaces",
-	"version": "1.5.0",
+	"version": "2.0.0",
 	"engines": {
 		"vscode": "^1.96.0"
 	},

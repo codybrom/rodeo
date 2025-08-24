@@ -32,5 +32,9 @@
 	"jest.runMode": {
 		"coverage": true,
 		"type": "watch",
+	},
+	"markdownlint.config": {
+		"MD033": false,
+		"MD041": false
 	}
 }

@@ -1,8 +1,20 @@
-# Rodeo – LLM Code Context Generator
-
-[![VS Marketplace Version](https://badgen.net/vs-marketplace/v/codybrom.gpt-context-generator)](https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator)
-[![VS Marketplace Installs](https://badgen.net/vs-marketplace/i/codybrom.gpt-context-generator)](https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator)
-[![VS Marketplace Rating](https://badgen.net/vs-marketplace/d/codybrom.gpt-context-generator)](https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator)
+<div align="center">
+  <img src="images/icon.png" alt="Rodeo Logo" width="96" height="96">
+  <h1>Rodeo (for VS Code)</h1>
+  <p><strong>🤠 Wrangle your code context for AI collaboration</strong></p>
+  <p><em>Formerly "GPT Context Generator" - Same powerful features, new name!</em></p>
+  <p>
+    <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator">
+      <img src="https://badgen.net/vs-marketplace/v/codybrom.gpt-context-generator" alt="VS Marketplace Version">
+    </a>
+    <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator">
+      <img src="https://badgen.net/vs-marketplace/i/codybrom.gpt-context-generator" alt="VS Marketplace Installs">
+    </a>
+    <a href="https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator">
+      <img src="https://badgen.net/vs-marketplace/d/codybrom.gpt-context-generator" alt="VS Marketplace Rating">
+    </a>
+  </p>
+</div>
 
 Rodeo is a Visual Studio Code extension that helps you generate LLM-ready context from your workspace files, making it easier to collaborate with AI models. The extension can automatically reference local code dependencies and respects your `.gitignore` rules to avoid including unnecessary files.
 
@@ -37,24 +49,23 @@ Rodeo is a Visual Studio Code extension that helps you generate LLM-ready contex
 Five ways to generate context:
 
 1. **Marked Files**:
-   - Mark desired files
-   - Command Palette → "Generate LLM Context (Marked Files)"
+   - Mark desired files by right-clicking them in the Explorer and selecting "Mark for LLM Context" or invoking the Command Palette (`Ctrl+Shift+P` on Windows or `Cmd+Shift+P` on Mac) while in an editor and selecting "Mark/Unmark File for LLM Context"
+   - Then, click the "Generate LLM Context (Marked Files)" magic wand icon in the Marked for LLM Context view or invoke the Command Palette again and select "Generate LLM Context (Marked Files)" to generate context from all marked files
 
 2. **Current File + Imports**:
-   - Open a file
-   - Command Palette → "Generate LLM Context (Current File + Imports)"
+   - When you have a file open in the editor, you can generate context for it along with its imports by invoking the Command Palette (`Ctrl+Shift+P` on Windows or `Cmd+Shift+P` on Mac), typing "Generate LLM Context", and selecting "Generate LLM Context (Current File + Imports)"
 
 3. **All Open Files**:
    - Have multiple files open in editor tabs
-   - Command Palette → "Generate LLM Context (All Open Files)"
+   - Invoke the Command Palette (`Ctrl+Shift+P` on Windows or `Cmd+Shift+P` on Mac) and select "Generate LLM Context (All Open Files)"
 
 4. **All Open Files + Imports**:
    - Have multiple files open in editor tabs
-   - Command Palette → "Generate LLM Context (All Open Files + Imports)"
+   - Invoke the Command Palette (`Ctrl+Shift+P` on Windows or `Cmd+Shift+P` on Mac) and select "Generate LLM Context (All Open Files + Imports)"
 
 5. **Entire Workspace**:
    - Open a workspace
-   - Command Palette → "Generate LLM Context (Workspace)"
+   - Invoke the Command Palette (`Ctrl+Shift+P` on Windows or `Cmd+Shift+P` on Mac) and select "Generate LLM Context (Workspace)"
 
 The generated context will be copied to your clipboard or opened in a new window, based on your settings.
 
@@ -121,9 +132,9 @@ Configure the extension in VS Code settings:
 
 ## Credits
 
-- Primary development: [@codybrom](https://github.com/codybrom)
-- Marked Files feature: [@Aventuum](https://github.com/Aventuum)
-- Magic Wand icon: [@boxicons](https://github.com/atisawd/boxicons)
+- Primary development and icon: [@codybrom](https://github.com/codybrom)
+- Original marked files feature: [@Aventuum](https://github.com/Aventuum)
+- Magic wand icon: [@boxicons](https://github.com/atisawd/boxicons)
 
 ## License
 
