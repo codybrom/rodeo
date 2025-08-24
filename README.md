@@ -1,19 +1,21 @@
-# Rodeo – LLM Context Generator
+# Rodeo – LLM Code Context Generator
 
 [![VS Marketplace Version](https://badgen.net/vs-marketplace/v/codybrom.gpt-context-generator)](https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator)
 [![VS Marketplace Installs](https://badgen.net/vs-marketplace/i/codybrom.gpt-context-generator)](https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator)
 [![VS Marketplace Rating](https://badgen.net/vs-marketplace/d/codybrom.gpt-context-generator)](https://marketplace.visualstudio.com/items?itemName=codybrom.gpt-context-generator)
 
-Rodeo is a Visual Studio Code extension helps you generate LLM-ready context from your workspace files, making it easier to collaborate with AI models. The extension can automatically reference local code dependencies and respects your `.gitignore` rules to avoid including unnecessary files.
+Rodeo is a Visual Studio Code extension that helps you generate LLM-ready context from your workspace files, making it easier to collaborate with AI models. The extension can automatically reference local code dependencies and respects your `.gitignore` rules to avoid including unnecessary files.
 
 ## Features
 
 - Generate LLM-ready context from the currently open file and its imports, your entire VS Code workspace or marked files
-- Mark or unmark open files via Command Palette, or individual files and folders via the Explorer context menu
+- Generate context from all open editor tabs with or without their imports
+- Smart mark/unmark functionality for files and folders via Explorer context menu
 - Automatic file tracking updates marked files when they're moved or deleted
 - Token count estimation for generated context
 - Optional file type detection to include or exclude common programming file extensions
 - Automatic support for multiple programming languages and file types
+- Configurable markdown file handling - include raw or wrap in code blocks
 
 ## Usage
 
@@ -32,25 +34,33 @@ Rodeo is a Visual Studio Code extension helps you generate LLM-ready context fro
 
 ### Generate Context
 
-Three ways to generate context:
+Five ways to generate context:
 
-1. **Current File + Imports**:
+1. **Marked Files**:
+   - Mark desired files
+   - Command Palette → "Generate LLM Context (Marked Files)"
+
+2. **Current File + Imports**:
    - Open a file
    - Command Palette → "Generate LLM Context (Current File + Imports)"
 
-2. **Workspace**:
+3. **All Open Files**:
+   - Have multiple files open in editor tabs
+   - Command Palette → "Generate LLM Context (All Open Files)"
+
+4. **All Open Files + Imports**:
+   - Have multiple files open in editor tabs
+   - Command Palette → "Generate LLM Context (All Open Files + Imports)"
+
+5. **Entire Workspace**:
    - Open a workspace
    - Command Palette → "Generate LLM Context (Workspace)"
-
-3. **Marked Files**:
-   - Mark desired files
-   - Command Palette → "Generate LLM Context (Marked Files)"
 
 The generated context will be copied to your clipboard or opened in a new window, based on your settings.
 
 ## Token Count Estimation
 
-After generating context, you'll see an estimated token count. This helps you stay within AI model token limits. A warning appears if the context exceeds a configurable token limit (default: 32,000).
+After generating context, you'll see an estimated token count. This helps you stay within AI model token limits. A warning appears if the context exceeds a configurable token limit (default: 32,000), but the generation will still proceed.
 
 ## Configuration
 
@@ -95,7 +105,19 @@ Configure the extension in VS Code settings:
 
 - **Include package.json** (for open file context only)
   - Include package.json when generating context for open file
-  - Default: `true`
+  - Default: `false`
+
+- **Markdown File Handling**
+  - `raw`: Include markdown files as-is, preserving formatting (default)
+  - `codeblock`: Wrap markdown files in code blocks like other files
+  - Useful for documentation with embedded code examples
+
+- **File Path Format**
+  - Controls where file paths appear in generated context
+  - `inline`: In code block header, e.g., ` ```js file.js` (default)
+  - `comment`: As HTML comment before content, e.g., `<!-- File: file.js -->`
+  - `none`: No file paths included
+  - Using `comment` or `none` prevents LLMs from including paths in generated code
 
 ## Credits
 
@@ -105,9 +127,6 @@ Configure the extension in VS Code settings:
 
 ## License
 
-© Cody Bromley and contributors. All rights reserved. Rodeo, "LLM Rodeo" and all trademark rights are reserved.
+© 2025 Cody Bromley and contributors.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
