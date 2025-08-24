@@ -17,11 +17,20 @@
 		"theme": "dark"
 	},
 	"keywords": [
-		"gpt-4",
+		"ai",
+		"llm",
+		"claude",
 		"gpt",
 		"openai",
+		"anthropic",
+		"gemini",
+		"copilot",
+		"context",
+		"code",
 		"generator",
-		"context"
+		"markdown",
+		"workspace",
+		"productivity"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
