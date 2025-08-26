@@ -322,7 +322,7 @@
 		"ignore": "^7.0.5"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.33.0",
+		"@eslint/js": "^9.34.0",
 		"@stylistic/eslint-plugin": "^5.2.3",
 		"@types/jest": "^30.0.0",
 		"@types/node": "^24.3.0",
@@ -333,7 +333,7 @@
 		"@vscode/test-electron": "^2.5.2",
 		"esbuild": "^0.25.9",
 		"esbuild-register": "^3.6.0",
-		"eslint": "^9.33.0",
+		"eslint": "^9.34.0",
 		"glob": "^11.0.3",
 		"jest": "^30.0.5",
 		"prettier": "^3.6.2",
