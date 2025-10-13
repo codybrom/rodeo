@@ -325,11 +325,11 @@
 		"@eslint/js": "^9.37.0",
 		"@stylistic/eslint-plugin": "^5.4.0",
 		"@types/jest": "^30.0.0",
-		"@types/node": "^24.7.0",
-		"@types/vscode": "^1.104.0",
-		"@typescript-eslint/eslint-plugin": "^8.45.0",
-		"@typescript-eslint/parser": "^8.45.0",
-		"@vscode/test-cli": "^0.0.11",
+		"@types/node": "^24.7.2",
+		"@types/vscode": "^1.105.0",
+		"@typescript-eslint/eslint-plugin": "^8.46.0",
+		"@typescript-eslint/parser": "^8.46.0",
+		"@vscode/test-cli": "^0.0.12",
 		"@vscode/test-electron": "^2.5.2",
 		"esbuild": "^0.25.10",
 		"esbuild-register": "^3.6.0",
@@ -337,9 +337,9 @@
 		"glob": "^11.0.3",
 		"jest": "^30.2.0",
 		"prettier": "^3.6.2",
-		"ts-jest": "^29.4.4",
+		"ts-jest": "^29.4.5",
 		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.45.0"
+		"typescript-eslint": "^8.46.0"
 	},
 	"prettier": {
 		"semi": true,
